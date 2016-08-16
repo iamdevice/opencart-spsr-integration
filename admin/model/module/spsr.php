@@ -272,7 +272,7 @@ class ModelModuleSPSR extends Model
         $data = array();
 
         foreach ($orders as $order_id) {
-            $sql = "SELECT o.order_id, o.total, o.shipping_firstname, o.shipping_lastname, o.shipping_postcode, o,shipping_country_id, o.shipping_country, o.shipping_zone_id, o.shipping_zone, o.shipping_city, CONCAT(' ', o.shipping_address_1, o.shipping_address_2) AS 'shipping_address', o.telephone, o.comment, o.email".chr(13).chr(10);
+            $sql = "SELECT o.order_id, o.total, o.shipping_firstname, o.shipping_lastname, o.shipping_postcode, o.shipping_country_id, o.shipping_country, o.shipping_zone_id, o.shipping_zone, o.shipping_city, CONCAT(' ', o.shipping_address_1, o.shipping_address_2) AS 'shipping_address', o.telephone, o.comment, o.email".chr(13).chr(10);
             $sql .= "FROM `" . DB_PREFIX . "order` o".chr(13).chr(10);
             $sql .= "WHERE o.order_id = '" . (int)$order_id . "'";
 

@@ -1,7 +1,7 @@
 <?php
 
 $_['heading_title']             = 'SPSR интеграция';
-$_['heading_send_orders']		= 'Выгрузка заказов в SPSR';
+$_['heading_prepare_orders']	= 'Выгрузка заказов в SPSR';
 
 $_['text_module']				= 'Модули';
 $_['text_success']				= 'Настройки модуля обновлены!';

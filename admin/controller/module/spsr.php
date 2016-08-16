@@ -91,7 +91,7 @@ class ControllerModuleSPSR extends Controller
 
         $this->data['action'] = $this->url->link('module/spsr', 'token=' . $this->session->data['token'], 'SSL');
         $this->data['cancel'] = $this->url->link('extension/module', 'token=' . $this->session->data['token'], 'SSL');
-        $this->data['send_orders'] = $this->url->link('module/spsr/sendorders', 'token=' . $this->session->data['token'], 'SSL');
+        $this->data['prepare_orders'] = $this->url->link('module/spsr/preparetosend', 'token=' . $this->session->data['token'], 'SSL');
 
         $this->data['order_statuses'] = $this->model_localisation_order_status->getOrderStatuses();
         $this->data['spsr_statuses'] = $this->model_module_spsr->getSpsrStatuses();
@@ -107,12 +107,39 @@ class ControllerModuleSPSR extends Controller
 
     public function prepareToSend()
     {
-
         foreach ($this->language->load('module/spsr') as $key => $value) {
             $this->data[$key] = $value;
         }
 
-        $this->data['server'] = $this->spsr->selectServer(2);
+        $this->document->setTitle($this->language->get('heading_prepare_orders'));
+
+        $this->data['breadcrumbs'] = array();
+        $this->data['breadcrumbs'][] = array(
+            'text' => $this->language->get('text_home'),
+            'href' => $this->url->link('common/home', 'token=' . $this->session->data['token'], 'SSL'),
+            'separator' => false
+        );
+        $this->data['breadcrumbs'][] = array(
+            'text' => $this->language->get('text_module'),
+            'href' => $this->url->link('extension/module', 'token=' . $this->session->data['token'], 'SSL'),
+            'separator' => ' :: '
+        );
+        $this->data['breadcrumbs'][] = array(
+            'text' => $this->language->get('heading_title'),
+            'href' => $this->url->link('module/spsr', 'token=' . $this->session->data['token'], 'SSL'),
+            'separator' => ' :: '
+        );
+        $this->data['breadcrumbs'][] = array(
+            'text' => $this->language->get('heading_prepare_orders'),
+            'href' => $this->url->link('module/spsr/preparetosend', 'token=' . $this->session->data['token'], 'SSL'),
+            'separator' => ' :: '
+        );
+
+        $this->data['action'] = $this->url->link('module/spsr/sendxml', 'token=' . $this->session->data['token'], 'SSL');
+
+        $this->load->model('module/spsr');
+
+        $this->data['orders'] = $this->model_module_spsr->getUploadDataByStatusId($this->config->get('spsr_intgr_upload_order_status'));
 
         $this->template = 'module/spsr/prepare_to_send.tpl';
         $this->children = array(
@@ -120,7 +147,6 @@ class ControllerModuleSPSR extends Controller
             'common/footer'
         );
         $this->response->setOutput($this->render());
-
     }
 
     private function validate()
