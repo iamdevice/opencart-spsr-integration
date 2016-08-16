@@ -1,6 +1,6 @@
 <?php echo $header; ?>
 <div id="content">
-    <div class="breadcrumbs">
+    <div class="breadcrumb">
         <?php foreach ($breadcrumbs as $breadcrumb) { ?>
         <?php echo $breadcrumb['separator']; ?><a href="<?php echo $breadcrumb['href']; ?>"><?php echo $breadcrumb['text']; ?></a>
         <?php } ?>
@@ -294,7 +294,181 @@
                         </tr>
                     </table>
                 </div>
+
+                <div id="setting">
+                    <table class="form">
+                        <tr>
+                            <td><?php echo $entry_paid_status; ?></td>
+                            <td>
+                                <select name="spsr_intgr_paid_order_status">
+                                <?php foreach ($order_statuses as $order_status) { ?>
+                                <?php if ($order_status['order_status_id'] == $spsr_intgr_paid_order_status) { ?>
+                                    <option value="<?php echo $order_status['order_status_id']; ?>" selected="selected"><?php echo $order_status['name']; ?></option>
+                                <?php } else { ?>
+                                    <option value="<?php echo $order_status['order_status_id']; ?>"><?php echo $order_status['name']; ?></option>
+                                <?php } ?>
+                                <?php } ?>
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><?php echo $entry_upload_status; ?></td>
+                            <td>
+                                <select name="spsr_intgr_upload_order_status">
+                                    <?php foreach ($order_statuses as $order_status) { ?>
+                                    <?php if ($order_status['order_status_id'] == $spsr_intgr_upload_order_status) { ?>
+                                    <option value="<?php echo $order_status['order_status_id']; ?>" selected="selected"><?php echo $order_status['name']; ?></option>
+                                    <?php } else { ?>
+                                    <option value="<?php echo $order_status['order_status_id']; ?>"><?php echo $order_status['name']; ?></option>
+                                    <?php } ?>
+                                    <?php } ?>
+                                </select>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+
+                <div id="shipper">
+                    <table class="form">
+                        <tr>
+                            <td><?php echo $entry_postcode; ?></td>
+                            <td><input type="text" name="spsr_intgr_shipper_info[postcode]" value="<?php echo $spsr_intgr_shipper_info['postcode']; ?>" /></td>
+                        </tr>
+                        <tr>
+                            <td><?php echo $entry_city; ?></td>
+                            <td><input type="text" name="spsr_intgr_shipper_info[city]" value="<?php echo $spsr_intgr_shipper_info['city']; ?>" /></td>
+                        </tr>
+                        <tr>
+                            <td><?php echo $entry_address; ?></td>
+                            <td><input type="text" name="spsr_intgr_shipper_info[address]" value="<?php echo $spsr_intgr_shipper_info['address']; ?>" /></td>
+                        </tr>
+                        <tr>
+                            <td><?php echo $entry_contact; ?></td>
+                            <td><input type="text" name="spsr_intgr_shipper_info[contact]" value="<?php echo $spsr_intgr_shipper_info['contact']; ?>" /></td>
+                        </tr>
+                        <tr>
+                            <td><?php echo $entry_telephone; ?></td>
+                            <td><input type="text" name="spsr_intgr_shipper_info[telephone]" value="<?php echo $spsr_intgr_shipper_info['telephone']; ?>" /></td>
+                        </tr>
+                        <tr>
+                            <td><?php echo $entry_email; ?></td>
+                            <td><input type="text" name="spsr_intgr_shipper_info[email]" value="<?php echo $spsr_intgr_shipper_info['email']; ?>" /></td>
+                        </tr>
+                    </table>
+                </div>
+
+                <div id="status-rules">
+                    <table class="list" id="spsr-status-rules">
+                        <thead>
+                        <tr>
+                            <td class="left"><?php echo $column_spsr_status; ?></td>
+                            <td class="left"><?php echo $column_order_status; ?></td>
+                            <td class="left"><?php echo $column_notify; ?></td>
+                            <td class="left"><?php echo $column_comment; ?></td>
+                            <td class="left"><?php echo $column_action; ?></td>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <?php $row = 1; ?>
+                        <?php if (!empty($spsr_intgr_order_rules)) { ?>
+                        <?php foreach ($spsr_intgr_order_rules as $rule) { ?>
+                        <tr rel="<?php echo $row; ?>">
+                            <td class="left">
+                                <select name="spsr_intgr_order_rules[<?php echo $row; ?>][spsr_status_id]" style="max-width:150px;">
+                                    <?php foreach ($spsr_statuses as $spsr_status) { ?>
+                                    <?php if ($rule['spsr_status_id'] == $spsr_status['event_id']) { ?>
+                                    <option value="<?php $spsr_status['event_id']; ?>" selected="selected"><?php echo $spsr_status['name']; ?></option>
+                                    <?php } else { ?>
+                                    <option value="<?php $spsr_status['event_id']; ?>"><?php echo $spsr_status['name']; ?></option>
+                                    <?php } ?>
+                                    <?php } ?>
+                                </select>
+                            </td>
+                            <td class="left">
+                                <select name="spsr_intgr_order_rules[<?php echo $row; ?>][order_status_id]">
+                                    <?php foreach ($order_statuses as $order_status) { ?>
+                                    <?php if ($rule['order_status_id'] == $order_status['order_status_id']) { ?>
+                                    <option value="<?php echo $order_status['order_status_id']; ?>" selected="selected"><?php echo $order_status['name']; ?></option>
+                                    <?php } else { ?>
+                                    <option value="<?php echo $order_status['order_status_id']; ?>"><?php echo $order_status['name']; ?></option>
+                                    <?php } ?>
+                                    <?php } ?>
+                                </select>
+                            </td>
+                            <td class="left">
+                                <select name="spsr_intgr_order_rules[<?php echo $row; ?>][notify]">
+                                    <?php if ($rule['notify'] == 1) { ?>
+                                    <option value="1" selected="selected"><?php echo $text_yes; ?></option>
+                                    <option value="0"><?php echo $text_no; ?></option>
+                                    <?php } else { ?>
+                                    <option value="1"><?php echo $text_yes; ?></option>
+                                    <option value="0"><?php echo $text_no; ?></option>
+                                    <?php } ?>
+                                </select>
+                            </td>
+                            <td class="left">
+                                <textarea name="spsr_intgr_order_rules[<?php echo $row; ?>][comment]" cols="70" rows="3"><?php echo $rule['comment']; ?></textarea>
+                            </td>
+                            <td class="left">
+                                <a class="button" onclick="$(this).closest('tr').remove();"><?php echo $button_delete; ?></a>
+                            </td>
+                        </tr>
+                        <?php $row++; ?>
+                        <?php } ?>
+                        <?php } else { ?>
+                        <tr>
+                            <td class="center" colspan="5"><?php echo $text_no_results; ?></td>
+                        </tr>
+                        <?php } ?>
+                        </tbody>
+                    </table>
+
+                    <a class="button" onclick="addRule();"><?php echo $button_add_rule; ?></a>
+                </div>
             </form>
         </div>
     </div>
 </div>
+<script type="text/javascript"><!--
+    function addRule() {
+        var row = <?php echo $row; ?>;
+
+        $('table#spsr-status-rules tr[rel]').each(function(){
+            var rel = $(this).attr('rel');
+            if (rel > row) {
+                row = rel;
+            }
+        });
+        row++;
+
+        html = '<tr rel="' + row + '">';
+        html += '<td class="left">';
+        html += '<select name="spsr_intgr_order_rules['+row+'][spsr_status_id]" style="max-width:150px;">';
+    <?php foreach ($spsr_statuses as $spsr_status) { ?>
+            html += '<option value="<?php echo $spsr_status["event_id"]; ?>"><?php echo $spsr_status["name"]; ?></option>';
+        <?php } ?>
+        html += '</select>';
+        html += '</td>';
+        html += '<td class="left">';
+        html += '<select name="spsr_intgr_order_rules['+row+'][order_status_id]">';
+    <?php foreach ($order_statuses as $order_status) { ?>
+            html += '<option value="<?php echo $order_status["order_status_id"]; ?>"><?php echo $order_status["name"]; ?></option>';
+        <?php } ?>
+        html += '</td>';
+        html += '<td class="left">';
+        html += '<select name="spsr_intgr_order_rules['+row+'][notify]">';
+        html += '<option value="1"><?php echo $text_yes; ?></option>';
+        html += '<option value="0" selected="selected"><?php echo $text_no; ?></option>';
+        html += '</select>';
+        html += '</td>';
+        html += '<td class="left"><textarea name="spsr_intgr_order_rules['+row+'][comment]" cols="70" rows="3"></textarea></td>';
+        html += '<td class="left"><a class="button" onclick="$(this).closest(\'tr\').remove();"><?php echo $button_delete; ?></a></td>';
+        html += '</tr>';
+
+        $("table#spsr-status-rules tbody:last").append(html);
+    }
+    //--></script>
+<script type="text/javascript"><!--
+    $('#htabs a').tabs();
+    //--></script>
+<?php echo $footer; ?>

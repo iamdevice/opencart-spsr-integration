@@ -7,7 +7,7 @@ class ModelModuleSPSR extends Model
         /**
          * @Table(name="spsr_cities")
          */
-        $sql = "CREATE TABLE `" . DB_PREFIX . "spsr_cities` (".chr(13).chr(10);
+        $sql = "CREATE TABLE IF NOT EXISTS `" . DB_PREFIX . "spsr_cities` (".chr(13).chr(10);
         $sql .= "`spsr_city_id` INT(11) NOT NULL AUTO_INCREMENT,".chr(13).chr(10);
         $sql .= "`city_id` INT(11),".chr(13).chr(10);
         $sql .= "`city_owner_id` INT(11),".chr(13).chr(10);
@@ -25,7 +25,7 @@ class ModelModuleSPSR extends Model
         /**
          * @Table(name="spsr_offices")
          */
-        $sql = "CREATE TABLE `" . DB_PREFIX . "spsr_offices` (".chr(13).chr(10);
+        $sql = "CREATE TABLE IF NOT EXISTS `" . DB_PREFIX . "spsr_offices` (".chr(13).chr(10);
         $sql .= "`spsr_office_id` INT(11) NOT NULL AUTO_INCREMENT,".chr(13).chr(10);
         $sql .= "`office_id` INT(11),".chr(13).chr(10);
         $sql .= "`office_owner_id` INT(11),".chr(13).chr(10);
@@ -46,7 +46,7 @@ class ModelModuleSPSR extends Model
         /**
          * @Table(name="spsr_order_status")
          */
-        $sql = "CREATE TABLE `" . DB_PREFIX . "spsr_cities` (".chr(13).chr(10);
+        $sql = "CREATE TABLE IF NOT EXISTS `" . DB_PREFIX . "spsr_order_status` (".chr(13).chr(10);
         $sql .= "`spsr_order_status_id` INT(11) NOT NULL AUTO_INCREMENT,".chr(13).chr(10);
         $sql .= "`event_id` INT(11) NOT NULL,".chr(13).chr(10);
         $sql .= "`event_code` VARCHAR(45),".chr(13).chr(10);
@@ -59,7 +59,7 @@ class ModelModuleSPSR extends Model
         /**
          * @Table(name="spsr_rules")
          */
-        $sql = "CREATE TABLE `" . DB_PREFIX . "spsr_rules` (".chr(13).chr(10);
+        $sql = "CREATE TABLE IF NOT EXISTS `" . DB_PREFIX . "spsr_rules` (".chr(13).chr(10);
         $sql .= "`spsr_rule_id` INT(11) NOT NULL AUTO_INCREMENT,".chr(13).chr(10);
         $sql .= "`order_status_id` INT(11) NOT NULL,".chr(13).chr(10);
         $sql .= "`notify` INT(1) DEFAULT 0,".chr(13).chr(10);
@@ -72,7 +72,7 @@ class ModelModuleSPSR extends Model
         /**
          * @Table(name="spsr_tariff")
          */
-        $sql = "CREATE TABLE `" . DB_PREFIX . "spsr_tariff` (".chr(13).chr(10);
+        $sql = "CREATE TABLE IF NOT EXISTS `" . DB_PREFIX . "spsr_tariff` (".chr(13).chr(10);
         $sql .= "`spsr_tariff_id` INT(11) NOT NULL AUTO_INCREMENT,".chr(13).chr(10);
         $sql .= "`tariff` INT(3) NOT NULL,".chr(13).chr(10);
         $sql .= "`tariff_type` INT(3) NOT NULL,".chr(13).chr(10);
@@ -90,7 +90,7 @@ class ModelModuleSPSR extends Model
         /**
          * @Table(name="spsr_track")
          */
-        $sql = "CREATE TABLE `" . DB_PREFIX . "spsr_track` (".chr(13).chr(10);
+        $sql = "CREATE TABLE IF NOT EXISTS `" . DB_PREFIX . "spsr_track` (".chr(13).chr(10);
         $sql .= "`spsr_track_id` INT(11) NOT NULL,".chr(13).chr(10);
         $sql .= "`order_id` INT(11) NOT NULL,".chr(13).chr(10);
         $sql .= "`date_added` DATETIME DEFAULT NULL,".chr(13).chr(10);
@@ -101,7 +101,7 @@ class ModelModuleSPSR extends Model
         /**
          * @Table(name="spsr_track_msg")
          */
-        $sql = "CREATE TABLE `" . DB_PREFIX . "spsr_track_msg` (".chr(13).chr(10);
+        $sql = "CREATE TABLE IF NOT EXISTS `" . DB_PREFIX . "spsr_track_msg` (".chr(13).chr(10);
         $sql .= "`spsr_track_msg_id` INT(11) NOT NULL AUTO_INCREMENT,".chr(13).chr(10);
         $sql .= "`order_id` INT(11) DEFAULT NULL,".chr(13).chr(10);
         $sql .= "`spsr_track_id` INT(11) DEFAULT NULL,".chr(13).chr(10);
@@ -109,12 +109,13 @@ class ModelModuleSPSR extends Model
         $sql .= "`msg_info` VARCHAR(50) DEFAULT NULL,".chr(13).chr(10);
         $sql .= "`msg_text` VARCHAR(500) DEFAULT NULL,".chr(13).chr(10);
         $sql .= "`date_added` DATETIME DEFAULT NULL,".chr(13).chr(10);
-        $sql .= "PRIMARY KEY (`spsr_track_id`))".chr(13).chr(10);
+        $sql .= "PRIMARY KEY (`spsr_track_msg_id`))".chr(13).chr(10);
         $sql .= "ENGINE=MyISAM";
         $this->db->query($sql);
 
         // Заполнение таблицы статусов СПСР
-        $sql = "INSERT INTO `" . DB_PREFIX . "spsr_order_status` (`event_id`, `event_code`, `delivery_id`, `name`)".chr(13).chr(10);
+        $sql = "TRUNCATE TABLE `" . DB_PREFIX . "spsr_order_status`;";
+        $sql .= "INSERT INTO `" . DB_PREFIX . "spsr_order_status` (`event_id`, `event_code`, `delivery_id`, `name`)".chr(13).chr(10);
         $sql .= "VALUES (1,'_CLCCH',NULL,'Отправление готово к вручению в офисе.'),".chr(13).chr(10);
         $sql .= "(2,'_CLCCS',NULL,'Оформлен самовывоз.'),".chr(13).chr(10);
         $sql .= "(3,'_CLCLB',NULL,'Отправление выдано курьеру для доставки.'),".chr(13).chr(10);
@@ -394,6 +395,11 @@ class ModelModuleSPSR extends Model
                 }
             }
         }
+    }
+
+    public function getSpsrStatuses() {
+        $query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "spsr_order_status`");
+        return $query->rows;
     }
 
     private function checkPaid($order_id) {

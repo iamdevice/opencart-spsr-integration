@@ -18,14 +18,17 @@ class spsr
     private $spsr_shipper;
     private $spsr_use_srv;
 
-    public function __construct()
+    public function __construct($registry)
     {
         $this->config = $registry->get('config');
         $this->db = $registry->get('db');
         $this->request = $registry->get('request');
         $this->session = $registry->get('session');
+    }
 
-        // Установка значений переменных
+    // Установка значений переменных
+    public function setAuth()
+    {
         $this->spsr_login = $this->config->get('spsr_intgr_login');
         $this->spsr_passwd = $this->config->get('spsr_intgr_passwd');
         $this->spsr_company = $this->config->get('spsr_intgr_company');
@@ -53,6 +56,8 @@ class spsr
                 $this->spsr_use_srv = $this->spsr_use_srv;
                 break;
         }
+
+        return "selected server {$this->spsr_use_srv}";
     }
 
     // Отправка запроса

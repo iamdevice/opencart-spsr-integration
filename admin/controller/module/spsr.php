@@ -32,11 +32,18 @@ class ControllerModuleSPSR extends Controller
         'order_rules'
     );
 
+    public function install()
+    {
+        $this->load->model('module/spsr');
+        $this->model_module_spsr->install();
+        $this->redirect($this->url->link('module/spsr', 'token=' . $this->session->data['token'], 'SSL'));
+    }
+
     public function index()
     {
         $this->load->model('setting/setting');
 
-        foreach ($this->language->get('module/spsr') as $key => $value) {
+        foreach ($this->language->load('module/spsr') as $key => $value) {
             $this->data[$key] = $value;
         }
 
@@ -46,6 +53,12 @@ class ControllerModuleSPSR extends Controller
             $this->model_setting_setting->editSetting('spsr_integration', $this->request->post);
             $this->session->data['success'] = $this->language->get('text_success');
             $this->redirect($this->url->link('extension/module', 'token=' . $this->session->data['token'], 'SSL'));
+        }
+
+        if ($this->error) {
+            $this->data['error_warning'] = $this->error;
+        } else {
+            $this->data['error_warning'] = '';
         }
 
         foreach ($this->config_keys as $key) {
@@ -80,6 +93,9 @@ class ControllerModuleSPSR extends Controller
         $this->data['cancel'] = $this->url->link('extension/module', 'token=' . $this->session->data['token'], 'SSL');
         $this->data['send_orders'] = $this->url->link('module/spsr/sendorders', 'token=' . $this->session->data['token'], 'SSL');
 
+        $this->data['order_statuses'] = $this->model_localisation_order_status->getOrderStatuses();
+        $this->data['spsr_statuses'] = $this->model_module_spsr->getSpsrStatuses();
+
         $this->template = 'module/spsr/spsr.tpl';
         $this->children = array(
             'common/header',
@@ -87,6 +103,24 @@ class ControllerModuleSPSR extends Controller
         );
 
         $this->response->setOutput($this->render());
+    }
+
+    public function prepareToSend()
+    {
+
+        foreach ($this->language->load('module/spsr') as $key => $value) {
+            $this->data[$key] = $value;
+        }
+
+        $this->data['server'] = $this->spsr->selectServer(2);
+
+        $this->template = 'module/spsr/prepare_to_send.tpl';
+        $this->children = array(
+            'common/header',
+            'common/footer'
+        );
+        $this->response->setOutput($this->render());
+
     }
 
     private function validate()
