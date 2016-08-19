@@ -40,8 +40,10 @@ class ModelShippingSPSR extends Model
 
     public function addTariff($data)
     {
-        $tariff = implode(',', $data);
-        $this->db->query("INSERT INTO `" . DB_PREFIX . "spsr_tariff` (tariff, tariff_type, city_from, region_from, city_to, region_to, `weight`, `price`, `days`) VALUES (" . $tariff . ")");
+        //$tariff = implode(',', $data);
+        $sql = "INSERT INTO `" . DB_PREFIX . "spsr_tariff` (tariff, tariff_type, city_from, region_from, city_to, region_to, `weight`, `price`, `days`) VALUES ";
+        $sql .= '(' . implode('),(', $data) . ')';
+        $this->db->query($sql);
     }
 }
 

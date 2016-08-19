@@ -95,12 +95,16 @@ class ControllerShippingSPSR extends Controller
                     $fn = $this->request->files['tariff-file']['tmp_name'];
                     $fn_type = PHPExcel_IOFactory::identify($fn);
 
-                    $cacheMethod = PHPExcel_CachedObjectStorageFactory::cache_to_phpTemp;
-                    $cacheSettings = ['memoryCacheSize' => '8M'];
-                    PHPExcel_Settings::setCacheStorageMethod($cacheMethod, $cacheSettings);
+                    //$cacheMethod = PHPExcel_CachedObjectStorageFactory::cache_to_phpTemp;
+                    //$cacheSettings = ['memoryCacheSize' => '16M'];
+                    //PHPExcel_Settings::setCacheStorageMethod($cacheMethod, $cacheSettings);
 
                     $reader = PHPExcel_IOFactory::createReader($fn_type);
                     $reader->setReadDataOnly(true);
+                    $sheetData = $reader->listWorksheetInfo($fn);
+                    $hRow = $sheetData[0]['totalRows'];
+                    $hCol = $sheetData[0]['totalColumns'];
+
                     $loaded = true;
                 } catch (Exception $e) {
                     $this->log->write("Ошибка загрузки файла '" . pathinfo($this->request->files['tariff-file']['name'],PATHINFO_BASENAME) . "': " . $e->getMessage());
@@ -114,8 +118,8 @@ class ControllerShippingSPSR extends Controller
                     // Увеличиваем время работы скрипта, потому что обработка больших файлов занимает продолжительное время
                     set_time_limit(240);
 
-                    $size = 10;
-                    for ($row = 2; $row <= 100000; $row += $size) {
+                    $size = 100;
+                    for ($row = 2; $row <= $hRow; $row += $size) {
                         $filter = new ReadFilter($row, $size);
                         $reader->setReadFilter($filter);
                         $xls = $reader->load($fn);
@@ -123,18 +127,18 @@ class ControllerShippingSPSR extends Controller
 
                         $f_data = $sheet->toArray(null, true, true, true);
 
+                        $tariff_part = array();
                         foreach ($f_data as $f_row) {
                             if (empty($f_row['A'])) {
                                 continue;
                             }
                             $data = array();
-                            $data[] = "'" . $tariff . "'";
-                            $data[] = "'" . $tariff_type . "'";
-                            foreach ($f_row as $f_col) {
-                                $data[] = "'" . $this->db->escape($f_col) . "'";
-                            }
-                            $this->model_shipping_spsr->addTariff($data);
+                            $data[] = $tariff;
+                            $data[] = $tariff_type;
+                            $data = $data + $f_row;
+                            $tariff_part[] = "'" . implode("','", $data) . "'";
                         }
+                        $this->model_shipping_spsr->addTariff($tariff_part);
                     }
                 }
 
@@ -184,10 +188,10 @@ class ReadFilter implements PHPExcel_Reader_IReadFilter
     private $sRow = 0;
     private $eRow = 0;
 
-    public function __construct($startRow, $endRow)
+    public function __construct($startRow, $size)
     {
         $this->sRow = $startRow;
-        $this->eRow = $endRow;
+        $this->eRow = $startRow + $size;
     }
 
     public function readCell($column, $row, $worksheetName = '')
