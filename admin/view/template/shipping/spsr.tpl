@@ -107,7 +107,7 @@
                                 <select name="spsr_shipping_discount[<?php echo $row; ?>][geo_zone]">
                                     <option value="0"><?php echo $text_all_zones; ?></option>
                                     <?php foreach ($geo_zones as $geo_zone) { ?>
-                                    <?php if ($geo_zone == $discount['geo_zone_id']) { ?>
+                                    <?php if ($geo_zone['geo_zone_id'] == $discount['geo_zone']) { ?>
                                     <option value="<?php echo $geo_zone['geo_zone_id']; ?>" selected="selected"><?php echo $geo_zone['name']; ?></option>
                                     <?php } else { ?>
                                     <option value="<?php echo $geo_zone['geo_zone_id']; ?>"><?php echo $geo_zone['name']; ?></option>
