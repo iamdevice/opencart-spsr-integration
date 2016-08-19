@@ -45,6 +45,11 @@ class ModelShippingSPSR extends Model
         $sql .= '(' . implode('),(', $data) . ')';
         $this->db->query($sql);
     }
+
+    public function delAllTariff()
+    {
+        $this->db->query("TRUNCATE TABLE `" . DB_PREFIX . "spsr_tariff`");
+    }
 }
 
 ?>

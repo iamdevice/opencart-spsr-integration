@@ -23,6 +23,7 @@
             <form action="<?php echo $action; ?>" method="post" enctype="multipart/form-data" id="form">
                 <div id="htabs" class="htabs">
                     <a href="#tab-general"><?php echo $tab_general; ?></a>
+                    <a href="#tab-discounts"><?php echo $tab_discounts; ?></a>
                     <a href="#tab-tariff"><?php echo $tab_tariff; ?></a>
                 </div>
 
@@ -70,6 +71,74 @@
                         </tr>
                     </tbody>
                     </table>
+                </div>
+
+                <div id="tab-discounts">
+                    <table class="list" id="table-discounts">
+                        <thead>
+                        <tr>
+                            <td class="left"><?php echo $column_sum; ?></td>
+                            <td class="left"><?php echo $column_tariff; ?></td>
+                            <td class="left"><?php echo $column_geo_zone; ?></td>
+                            <td class="left"><?php echo $column_value; ?></td>
+                            <td class="left"><?php echo $column_sort_order; ?></td>
+                            <td class="left"></td>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <?php $row = 1; ?>
+                        <?php foreach ($spsr_shipping_discount as $discount) { ?>
+                        <tr rel="<?php echo $row; ?>">
+                            <td class="left">
+                                <input type="text" name="spsr_shipping_discount[<?php echo $row; ?>][sum]" value="<?php echo $discount['sum']; ?>" size="5" />
+                            </td>
+                            <td class="left">
+                                <select name="spsr_shipping_discount[<?php echo $row; ?>][tariff]">
+                                    <?php if ($discount['tariff'] == 'zebon') { ?>
+                                    <option value="zebon" selected="selected"><?php echo $t_zebon; ?></option>
+                                    <option value="gepon"><?php echo $t_gepon; ?></option>
+                                    <?php } else { ?>
+                                    <option value="zebon"><?php echo $t_zebon; ?></option>
+                                    <option value="gepon" selected="selected"><?php echo $t_gepon; ?></option>
+                                    <?php } ?>
+                                </select>
+                            </td>
+                            <td class="left">
+                                <select name="spsr_shipping_discount[<?php echo $row; ?>][geo_zone]">
+                                    <option value="0"><?php echo $text_all_zones; ?></option>
+                                    <?php foreach ($geo_zones as $geo_zone) { ?>
+                                    <?php if ($geo_zone == $discount['geo_zone_id']) { ?>
+                                    <option value="<?php echo $geo_zone['geo_zone_id']; ?>" selected="selected"><?php echo $geo_zone['name']; ?></option>
+                                    <?php } else { ?>
+                                    <option value="<?php echo $geo_zone['geo_zone_id']; ?>"><?php echo $geo_zone['name']; ?></option>
+                                    <?php } ?>
+                                    <?php } ?>
+                                </select>
+                            </td>
+                            <td class="left">
+                                <select name="spsr_shipping_discount[<?php echo $row; ?>][prefix]">
+                                    <?php foreach (['-','+'] as $prefix) { ?>
+                                    <?php if ($discount['prefix'] == $prefix) { ?>
+                                    <option value="<?php echo $prefix; ?>" selected="selected"><?php echo $prefix; ?></option>
+                                    <?php } else { ?>
+                                    <option value="<?php echo $prefix; ?>"><?php echo $prefix; ?></option>
+                                    <?php } ?>
+                                    <?php } ?>
+                                </select>
+                                <input type="text" name="spsr_shipping_discount[<?php echo $row; ?>][discount]" value="<?php echo $discount['discount']; ?>" size="5" />
+                            </td>
+                            <td class="left">
+                                <input type="text" name="spsr_shipping_discount[<?php echo $row; ?>][sort_order]" value="<?php echo $discount['sort_order']; ?>" size="2" />
+                            </td>
+                            <td class="left">
+                                <a onclick="$('tr[rel=<?php echo $row; ?>]').remove();" class="button"><?php echo $button_delete; ?></a>
+                            </td>
+                        </tr>
+                        <?php $row++; ?>
+                        <?php } ?>
+                        </tbody>
+                    </table>
+                    <div><a class="button" onclick="addDiscount();"><?php echo $button_add_discount; ?></a></div>
                 </div>
             </form>
 
@@ -140,5 +209,45 @@
     });
 
     $('#htabs a').tabs();
+//--></script>
+<script type="text/javascript"><!--
+    function addDiscount() {
+        var row = '<?php echo $row; ?>';
+        html = '<tr rel="'+row+'">';
+        html += '<td class="left">';
+        html += '<input type="text" name="spsr_shipping_discount['+row+'][sum]" size="5" />';
+        html += '</td>';
+        html += '<td class="left">';
+        html += '<select name="spsr_shipping_discount['+row+'][tariff]">';
+        html += '<option value="zebon"><?php echo $t_zebon; ?></option>';
+        html += '<option value="gepon"><?php echo $t_gepon; ?></option>';
+        html += '</select>';
+        html += '</td>';
+        html += '<td class="left">';
+        html += '<select name="spsr_shipping_discount['+row+'][geo_zone]">';
+        html += '<option value="0"><?php echo $text_all_zones; ?></option>';
+        <?php foreach ($geo_zones as $geo_zone) { ?>
+            html += '<option value="<?php echo $geo_zone['geo_zone_id']; ?>"><?php echo $geo_zone['name']; ?></option>';
+        <?php } ?>
+        html += '</select>';
+        html += '</td>';
+        html += '<td class="left">';
+        html += '<select name="spsr_shipping_discount['+row+'][prefix]">';
+        html += '<option value="-">-</option>';
+        html += '<option value="+">+</option>';
+        html += '</select>';
+        html += '<input type="text" name="spsr_shipping_discount['+row+'][discount]" size="5" />';
+        html += '</td>';
+        html += '<td class="left">';
+        html += '<input type="text" name="spsr_shipping_discount['+row+'][sort_order]" size="2" />';
+        html += '</td>';
+        html += '<td class="left">';
+        html += '<a class="button"><?php echo $button_delete; ?></a>'
+        html += '</td>';
+        html += '</tr>';
+        <?php $row++; ?>
+
+        $('table#table-discounts tbody').append(html);
+    }
 //--></script>
 <?php echo $footer; ?>

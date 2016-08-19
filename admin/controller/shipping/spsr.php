@@ -12,7 +12,8 @@ class ControllerShippingSPSR extends Controller
         'city',
         'courier',
         'pvz',
-        'postomat'
+        'postomat',
+        'discount'
     );
 
     public function install()
@@ -77,6 +78,9 @@ class ControllerShippingSPSR extends Controller
         $this->data['cancel'] = $this->url->link('extension/shipping', 'token=' . $this->session->data['token'], 'SSL');
         $this->data['token'] = $this->session->data['token'];
 
+        $this->load->model('localisation/geo_zone');
+        $this->data['geo_zones'] = $this->model_localisation_geo_zone->getGeoZones();
+
         $this->template = 'shipping/spsr.tpl';
         $this->children = array(
             'common/header',
@@ -95,9 +99,72 @@ class ControllerShippingSPSR extends Controller
                     $fn = $this->request->files['tariff-file']['tmp_name'];
                     $fn_type = PHPExcel_IOFactory::identify($fn);
 
-                    //$cacheMethod = PHPExcel_CachedObjectStorageFactory::cache_to_phpTemp;
-                    //$cacheSettings = ['memoryCacheSize' => '16M'];
-                    //PHPExcel_Settings::setCacheStorageMethod($cacheMethod, $cacheSettings);
+                    $cacheMethod = PHPExcel_CachedObjectStorageFactory::cache_to_phpTemp;
+                    $cacheSettings = ['memoryCacheSize' => '8M'];
+                    PHPExcel_Settings::setCacheStorageMethod($cacheMethod, $cacheSettings);
+
+                    $reader = PHPExcel_IOFactory::createReader($fn_type);
+                    $reader->setReadDataOnly(true);
+                    $sheetData = $reader->listWorksheetInfo($fn);
+                    $hRow = $sheetData[0]['totalRows'];
+                    $hCol = $sheetData[0]['totalColumns'];
+                    $xls = $reader->load($fn);
+
+                    $loaded = true;
+                } catch (Exception $e) {
+                    $this->log->write("Ошибка загрузки файла '" . pathinfo($this->request->files['tariff-file']['name'],PATHINFO_BASENAME) . "': " . $e->getMessage());
+                }
+
+                if ($loaded) {
+                    $sheet = $xls->getSheet(0);
+                    $this->load->model('shipping/spsr');
+                    $tariff = $this->request->post['tariff'];
+                    $tariff_type = $this->request->post['tariff-type'];
+
+                    // Увеличиваем время работы скрипта, потому что обработка больших файлов занимает продолжительное время
+                    set_time_limit(240);
+
+                    $tariff_part = array();
+                    for ($row = 2; $row <= $hRow; $row ++) {
+                        $data = array();
+                        $data[] = "'" . $tariff . "'";
+                        $data[] = "'" . $tariff_type . "'";
+                        for ($col = 0; $col < $hCol; $col++) {
+                            if ($tariff_type == 2 || $tariff_type == 3) {
+                                if (in_array($col,[5,6,7,8,9,10,13])) {
+                                    continue;
+                                }
+                            }
+                            $data[] = "'" . $this->db->escape($sheet->getCellByColumnAndRow($col, $row)->getValue()) . "'";
+                        }
+                        $tariff_part[] = implode(',', $data);
+                    }
+                    $this->model_shipping_spsr->addTariff($tariff_part);
+                }
+
+                $xls->disconnectWorksheets();
+                unset($sheet);
+                unset($xls);
+            }
+        }
+
+        $this->redirect($this->url->link('shipping/spsr', 'token=' . $this->session->data['token'], 'SSL'));
+    }
+
+    // Заливка по частям
+    public function uploadTariffByParts()
+    {
+        if ($this->request->server['REQUEST_METHOD'] == 'POST' && $this->validate()) {
+            $loaded = false;
+
+            if (is_uploaded_file($this->request->files['tariff-file']['tmp_name'])) {
+                try {
+                    $fn = $this->request->files['tariff-file']['tmp_name'];
+                    $fn_type = PHPExcel_IOFactory::identify($fn);
+
+                    $cacheMethod = PHPExcel_CachedObjectStorageFactory::cache_to_phpTemp;
+                    $cacheSettings = ['memoryCacheSize' => '8M'];
+                    PHPExcel_Settings::setCacheStorageMethod($cacheMethod, $cacheSettings);
 
                     $reader = PHPExcel_IOFactory::createReader($fn_type);
                     $reader->setReadDataOnly(true);
@@ -118,7 +185,7 @@ class ControllerShippingSPSR extends Controller
                     // Увеличиваем время работы скрипта, потому что обработка больших файлов занимает продолжительное время
                     set_time_limit(240);
 
-                    $size = 100;
+                    $size = 10000;
                     for ($row = 2; $row <= $hRow; $row += $size) {
                         $filter = new ReadFilter($row, $size);
                         $reader->setReadFilter($filter);
@@ -136,6 +203,15 @@ class ControllerShippingSPSR extends Controller
                             $data[] = $tariff;
                             $data[] = $tariff_type;
                             $data = $data + $f_row;
+                            if ($tariff_type == 2 || $tariff_type == 3) {
+                                unset($data['F']);
+                                unset($data['G']);
+                                unset($data['H']);
+                                unset($data['I']);
+                                unset($data['J']);
+                                unset($data['K']);
+                                unset($data['N']);
+                            }
                             $tariff_part[] = "'" . implode("','", $data) . "'";
                         }
                         $this->model_shipping_spsr->addTariff($tariff_part);
