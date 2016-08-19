@@ -14,6 +14,7 @@
         <div class="heading">
             <h1><img src="view/image/module.png" alt="" /> <?php echo $heading_title; ?></h1>
             <div class="buttons">
+                <a href="<?php echo $prepare_orders; ?>" class="button"><?php echo $button_prepare_orders; ?></a>
                 <a onclick="$('#form').submit();" class="button"><?php echo $button_save; ?></a>
                 <a href="<?php echo $cancel; ?>" class="button"><?php echo $button_cancel; ?></a>
             </div>
@@ -32,6 +33,20 @@
 
                 <div id="options">
                     <table class="form">
+                        <tr>
+                            <td><?php echo $entry_product_type; ?></td>
+                            <td>
+                                <select name="spsr_intgr_product_type">
+                                    <?php foreach ($spsr_product_types as $product_type) { ?>
+                                    <?php if ($spsr_intgr_product_type == $product_type['spsr_product_type_id']) { ?>
+                                    <option value="<?php echo $product_type['spsr_product_type_id']; ?>" selected="selected"><?php echo $product_type['name']; ?></option>
+                                    <?php } else { ?>
+                                    <option value="<?php echo $product_type['spsr_product_type_id']; ?>"><?php echo $product_type['name']; ?></option>
+                                    <?php } ?>
+                                    <?php } ?>
+                                </select>
+                            </td>
+                        </tr>
                         <tr>
                             <td><?php echo $entry_partdelivery; ?></td>
                             <td>
@@ -277,6 +292,20 @@
                 <div id="auth">
                     <table class="form">
                         <tr>
+                            <td><?php echo $entry_spsr_server; ?></td>
+                            <td>
+                                <select name="spsr_intgr_server">
+                                    <?php foreach ($spsr_servers as $index => $srv) { ?>
+                                    <?php if ((int)$spsr_intgr_server === $index) { ?>
+                                    <option value="<?php echo $index; ?>" selected="selected"><?php echo $srv; ?></option>
+                                    <?php } else { ?>
+                                    <option value="<?php echo $index; ?>"><?php echo $srv; ?></option>
+                                    <?php } ?>
+                                    <?php } ?>
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
                             <td><?php echo $entry_login; ?></td>
                             <td><input type="text" name="spsr_intgr_login" value="<?php echo $spsr_intgr_login; ?>" /></td>
                         </tr>
@@ -326,6 +355,8 @@
                             </td>
                         </tr>
                     </table>
+                    <div><a href="<?php echo $load_spsr_cities; ?>" class="button" style="margin-bottom: 5px; margin-right: 10px;"><?php echo $button_load_cities;?></a>&nbsp;<?php echo $text_updated; ?> <?php echo $spsr_intgr_cities_upd; ?></div>
+                    <div><a href="<?php echo $load_spsr_offices; ?>" class="button" style="margin-bottom: 5px; margin-right: 10px;"><?php echo $button_load_offices; ?></a>&nbsp;<?php echo $text_updated; ?> <?php echo $spsr_intgr_offices_upd; ?><br /><?php echo $text_office_upd_alert; ?></div>
                 </div>
 
                 <div id="shipper">

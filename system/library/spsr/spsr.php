@@ -17,6 +17,7 @@ class spsr
     private $spsr_ikn;
     private $spsr_shipper;
     private $spsr_use_srv;
+    private $error = array();
 
     public function __construct($registry)
     {
@@ -24,6 +25,8 @@ class spsr
         $this->db = $registry->get('db');
         $this->request = $registry->get('request');
         $this->session = $registry->get('session');
+        // При создании всегда выбираем тестовый HTTP сервер
+        $this->selectServer(3);
     }
 
     // Установка значений переменных
@@ -39,6 +42,7 @@ class spsr
     // Выбор рабочего сервера
     public function selectServer($server_id)
     {
+        $server_id = (int)$server_id;
         switch ($server_id) {
             case 1:
                 $this->spsr_use_srv = $this->spsr_srv;
@@ -71,7 +75,7 @@ class spsr
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
         curl_setopt($ch, CURLOPT_POST, 1);
         curl_setopt($ch, CURLOPT_POSTFIELDS, $request);
-        curl_setopt($ch, CURLOPT_HEADER, $header);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
 
         $result = curl_exec($ch);
         curl_close($ch);
@@ -87,10 +91,10 @@ class spsr
     public function openSession()
     {
         $req = '
-        <root xmlns="http://spsr.ru/webapi/usermanagment/login/1.0">
-			<p:Params Name="WALogin" Ver="1.0" xmlns:p="http://spsr.ru/webapi/WA/1.0" />
-				<Login Login="' . $this->spsr_login . '" Pass="' . $this->spsr_passwd . '" UserAgent="' . $this->spsr_company . '" />
-		</root>
+            <root xmlns="http://spsr.ru/webapi/usermanagment/login/1.0">
+                <p:Params Name="WALogin" Ver="1.0" xmlns:p="http://spsr.ru/webapi/WA/1.0" />
+                <Login Login="' . $this->spsr_login . '" Pass="' . $this->spsr_passwd . '" UserAgent="' . $this->spsr_company . '" />
+            </root>
 		';
 
         $result = $this->sendRequest($req);
@@ -126,6 +130,123 @@ class spsr
         } else {
             return false;
         }
+    }
+
+    // Получение городов
+    public function WAGetCities($data)
+    {
+        if (is_bool($data) && $data == false) {
+            $request = '
+			<root xmlns="http://spsr.ru/webapi/Info/GetCities/1.0">
+				<p:Params Name="WAGetCities" Ver="1.0" xmlns:p="http://spsr.ru/webapi/WA/1.0" />
+					<GetCities CityName="" CountryName="россия" />
+			</root>
+			';
+        } else {
+            $city_name = preg_replace('/^\s*г\.?\s+/isu', '', $data);
+            $request = '
+			<root xmlns="http://spsr.ru/webapi/Info/GetCities/1.0">
+				<p:Params Name="WAGetCities" Ver="1.0" xmlns:p="http://spsr.ru/webapi/WA/1.0" />
+					<GetCities CityName="' . $city_name . '" CountryName="" />
+			</root>
+			';
+        }
+
+        $result = $this->sendRequest($request);
+        $cities = array();
+
+        if (isset($result) && !empty($result)) {
+            $xml = simplexml_load_string($result);
+            foreach ($xml->City->Cities as $city) {
+                $cities[] = array(
+                    'region_id' => (string)$city['Region_ID'],
+                    'region_owner_id' => (string)($city['Region_Owner_ID'] == 0 ? '0' : $city['Region_Ownder_ID']),
+                    'region_name' => (string)$city['RegionName'],
+                    'city_id' => (string)$city['City_ID'],
+                    'city_owner_id' => (string)($city['City_Owner_ID'] == 0?'0':$city['City_Ownder_ID']),
+                    'city_name' => (string)$city['CityName'],
+                    'country_id' => (string)$city['Country_ID'],
+                    'country_owner_id' => (string)($city['Country_Owner_ID'] == 0?'0':$city['Country_Owner_ID']),
+                    'cod' => (string)($city['COD'] == 0?'0':$city['COD'])
+                );
+            }
+
+            if (count($cities) > 0) {
+                return $cities;
+            }
+        }
+
+        return false;
+    }
+
+    // Получение офисов
+    public function WAGetSpsrOffices($data)
+    {
+        $offices = array();
+        foreach ($data as $city) {
+            $request = '
+			<root xmlns="http://spsr.ru/webapi/Info/GetSpsrOffices/1.0">
+			<p:Params Name="WAGetSpsrOffices" Ver="1.0" xmlns:p="http://spsr.ru/webapi/WA/1.0" />
+				<Login SID="' . $this->spsr_sid . '" />
+				<GetSpsrOffices CityId="' . $city['city_id'] . '" CityOwnerId="' . $city['city_owner_id'] . '" />
+			</root>
+			';
+            $result = $this->sendRequest($request);
+
+            if (isset($result) && !empty($result)) {
+                $xml = simplexml_load_string($result);
+                if (isset($xml->Result['RC']) && $xml->Result['RC'] == "0" && isset($xml->SPSROffices)) {
+                    foreach ($xml->SPSROffices->Office as $office) {
+                        $phones = array();
+                        foreach ($office->Phone as $phone) {
+                            $phones[] = array(
+                                'phone' => (string)$phone['Phone'],
+                                'comment' => (string)$phone['Comment']
+                            );
+                        }
+
+                        $offices[] = array(
+                            'office_id' => (int)$office['id'],
+                            'office_owner_id' => (int)$office['office_owner_id'],
+                            'city_name' => (string)$office['CityName'],
+                            'region' => (string)$office['Region'],
+                            'address' => (string)$office['Address'],
+                            'comment' => (string)$office['Comment'],
+                            'phone' => (string)$office['Phone'],
+                            'timezone_msk' => (string)$office['TimeZoneMsk'],
+                            'worktime' => (string)$office['WorkTime'],
+                            'email' => (string)$office['Email'],
+                            'latitude' => (string)$office['Latitude'],
+                            'longitude' => (string)$office['Longitude'],
+                            'phones' => serialize($phones)
+                        );
+                    }
+                }
+            }
+        }
+
+        if (count($offices) > 0) {
+            return $offices;
+        } else {
+            return false;
+        }
+    }
+
+    // Получение SID (Session ID)
+    public function getSID()
+    {
+        return $this->spsr_sid;
+    }
+
+    // Получение списка серверов
+    public function getSpsrServers()
+    {
+        return array(
+            1 => 'Боевой HTTP',
+            2 => 'Боевой HTTPS',
+            3 => 'Тестовый HTTP',
+            4 => 'Тестовый HTTPS'
+        );
     }
 
     // Подготовка заказов к отправке
@@ -166,7 +287,7 @@ class spsr
             $attr[] = 'Address="' . $order['shipper_address'] . '"';
             $attr[] = 'CompanyName="' . $this->spsr_company . '"';
             $attr[] = 'ContactName="' . $order['shipper_contact'] . '"';
-            $attr[] = 'Phone="' . $order['shipper_phone'] . '"';
+            $attr[] = 'Phone="' . $order['shipper_telephone'] . '"';
             $attr[] = 'Email="' . $order['shipper_email'] . '"';
             $data[] = '<Shipper ' . implode(' ', $attr) . ' />';
 
@@ -177,7 +298,7 @@ class spsr
             $attr[] = 'City="' . $order['shipping_city'] . '"';
             $attr[] = 'Address="' . $order['shipping_address'] . '"';
             $attr[] = 'ContactName="' . $order['shipping_customer'] . '"';
-            $attr[] = 'Phone="' . $order['shipping_phone'] . '"';
+            $attr[] = 'Phone="' . $order['shipping_telephone'] . '"';
             $attr[] = 'Comment=""';
             $attr[] = 'Email="' . $order['shipping_email'] . '"';
             $data[] = '<Receiver ' . implode(' ', $attr) . ' />';
@@ -225,13 +346,13 @@ class spsr
 
             $attr = array();
             $attr[] = 'Description="' . $order['products_type'] . '"';
-            $attr[] = 'Weight="0"';
+            $attr[] = 'Weight="' . $order['weight'] . '"';
             $attr[] = 'Length="0"';
             $attr[] = 'Width="0"';
             $attr[] = 'Depth="0"';
             $data[] = '<Piece ' . implode(' ', $attr) . '>';
 
-            foreach ($order['product'] as $product) {
+            foreach ($order['products'] as $product) {
                 $attr = array();
                 $attr[] = 'Description="' . $product['name'] . ' / Код позиции: ' . $product['order_product_id'] . '"';
                 $attr[] = 'Cost="' . (float)$product['price'] . '"';
@@ -253,6 +374,52 @@ class spsr
         return $xml;
     }
 
+    // Парсинг ответа на выгрузку накладных
+    public function parseXmlOrders($orders)
+    {
+        $xml = simplexml_load_string($orders);
+
+        $data = array();
+        foreach ($xml->Invoice as $inv) {
+            if ($inv['Status'] == 'Created' || $inv['Status'] == 'Updated') {
+                $data[] = array(
+                    'order_id' => (string)$inv['GCNumber'],
+                    'track' => (string)$inv['InvoiceNumber'],
+                    'status' => (string)$inv['Status'],
+                    'barcodes' => (string)$inv['Barcodes'],
+                    'client_barcodes' => (string)$inv['ClientBarcodes'],
+                    'messages' => array()
+                );
+            }
+
+            if ($inv['Status'] == 'Rejected') {
+                $msgs = array();
+                foreach ($inv->Message as $inv_msg) {
+                    $msgs[] = array(
+                        'code' => (string)$inv_msg['MessageCode'],
+                        'text' => (string)$inv_msg['Text']
+                    );
+                }
+                $data[] = array(
+                    'order_id' => (string)$inv['GCNumber'],
+                    'track' => '',
+                    'status' => (string)$inv['Status'],
+                    'barcodes' => '',
+                    'client_barcodes' => '',
+                    'messages' => $msgs
+                );
+            }
+        }
+
+        return $data;
+    }
+
+    // Логирование
+    protected function logging($data)
+    {
+        $fn = DIR_SYSTEM . "logs/spsr.log";
+        file_put_contents($fn, print_r($data, true), FILE_APPEND|LOCK_EX);
+    }
 }
 
 ?>

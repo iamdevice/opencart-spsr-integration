@@ -4,9 +4,6 @@ class ModelModuleSPSR extends Model
 {
     public function install()
     {
-        /**
-         * @Table(name="spsr_cities")
-         */
         $sql = "CREATE TABLE IF NOT EXISTS `" . DB_PREFIX . "spsr_cities` (".chr(13).chr(10);
         $sql .= "`spsr_city_id` INT(11) NOT NULL AUTO_INCREMENT,".chr(13).chr(10);
         $sql .= "`city_id` INT(11),".chr(13).chr(10);
@@ -16,15 +13,12 @@ class ModelModuleSPSR extends Model
         $sql .= "`region_owner_id` INT(11),".chr(13).chr(10);
         $sql .= "`region_name` VARCHAR(100),".chr(13).chr(10);
         $sql .= "`country_id` INT(11),".chr(13).chr(10);
-        $sql .= "`coutnry_owner_id` INT(11),".chr(13).chr(10);
+        $sql .= "`country_owner_id` INT(11),".chr(13).chr(10);
         $sql .= "`cod` INT(2),".chr(13).chr(10);
         $sql .= "PRIMARY KEY (`spsr_city_id`))".chr(13).chr(10);
         $sql .= "ENGINE=MyISAM";
         $this->db->query($sql);
 
-        /**
-         * @Table(name="spsr_offices")
-         */
         $sql = "CREATE TABLE IF NOT EXISTS `" . DB_PREFIX . "spsr_offices` (".chr(13).chr(10);
         $sql .= "`spsr_office_id` INT(11) NOT NULL AUTO_INCREMENT,".chr(13).chr(10);
         $sql .= "`office_id` INT(11),".chr(13).chr(10);
@@ -33,19 +27,17 @@ class ModelModuleSPSR extends Model
         $sql .= "`region` VARCHAR(100),".chr(13).chr(10);
         $sql .= "`address` VARCHAR(250),".chr(13).chr(10);
         $sql .= "`comment` VARCHAR(500),".chr(13).chr(10);
+        $sql .= "`phone` VARCHAR(100),".chr(13).chr(10);
         $sql .= "`timezone_msk` VARCHAR(20),".chr(13).chr(10);
         $sql .= "`worktime` VARCHAR(50),".chr(13).chr(10);
         $sql .= "`email` VARCHAR(100),".chr(13).chr(10);
         $sql .= "`latitude` VARCHAR(50),".chr(13).chr(10);
         $sql .= "`longitude` VARCHAR(50),".chr(13).chr(10);
-        $sql .= "`phone` VARCHAR(100),".chr(13).chr(10);
+        $sql .= "`phones` TEXT,".chr(13).chr(10);
         $sql .= "PRIMARY KEY (`spsr_office_id`))".chr(13).chr(10);
         $sql .= "ENGINE=MyISAM";
         $this->db->query($sql);
 
-        /**
-         * @Table(name="spsr_order_status")
-         */
         $sql = "CREATE TABLE IF NOT EXISTS `" . DB_PREFIX . "spsr_order_status` (".chr(13).chr(10);
         $sql .= "`spsr_order_status_id` INT(11) NOT NULL AUTO_INCREMENT,".chr(13).chr(10);
         $sql .= "`event_id` INT(11) NOT NULL,".chr(13).chr(10);
@@ -56,9 +48,6 @@ class ModelModuleSPSR extends Model
         $sql .= "ENGINE=MyISAM";
         $this->db->query($sql);
 
-        /**
-         * @Table(name="spsr_rules")
-         */
         $sql = "CREATE TABLE IF NOT EXISTS `" . DB_PREFIX . "spsr_rules` (".chr(13).chr(10);
         $sql .= "`spsr_rule_id` INT(11) NOT NULL AUTO_INCREMENT,".chr(13).chr(10);
         $sql .= "`order_status_id` INT(11) NOT NULL,".chr(13).chr(10);
@@ -69,9 +58,6 @@ class ModelModuleSPSR extends Model
         $sql .= "ENGINE=MyISAM";
         $this->db->query($sql);
 
-        /**
-         * @Table(name="spsr_tariff")
-         */
         $sql = "CREATE TABLE IF NOT EXISTS `" . DB_PREFIX . "spsr_tariff` (".chr(13).chr(10);
         $sql .= "`spsr_tariff_id` INT(11) NOT NULL AUTO_INCREMENT,".chr(13).chr(10);
         $sql .= "`tariff` INT(3) NOT NULL,".chr(13).chr(10);
@@ -87,20 +73,22 @@ class ModelModuleSPSR extends Model
         $sql .= "ENGINE=MyISAM";
         $this->db->query($sql);
 
-        /**
-         * @Table(name="spsr_track")
-         */
+        $sql = "CREATE TABLE IF NOT EXISTS `" . DB_PREFIX . "spsr_product_type` (".chr(13).chr(10);
+        $sql .= "`spsr_product_type_id` INT(11) NOT NULL AUTO_INCREMENT,".chr(13).chr(10);
+        $sql .= "`name` VARCHAR(50) NOT NULL,".chr(13).chr(10);
+        $sql .= "PRIMARY KEY (`spsr_product_type_id`))".chr(13).chr(10);
+        $sql .= "ENGINE=MyISAM";
+        $this->db->query($sql);
+
         $sql = "CREATE TABLE IF NOT EXISTS `" . DB_PREFIX . "spsr_track` (".chr(13).chr(10);
-        $sql .= "`spsr_track_id` INT(11) NOT NULL,".chr(13).chr(10);
+        $sql .= "`spsr_track_id` INT(11) NOT NULL AUTO_INCREMENT,".chr(13).chr(10);
+        $sql .= "`track_number` VARCHAR(25) NOT NULL,".chr(13).chr(10);
         $sql .= "`order_id` INT(11) NOT NULL,".chr(13).chr(10);
         $sql .= "`date_added` DATETIME DEFAULT NULL,".chr(13).chr(10);
         $sql .= "PRIMARY KEY (`spsr_track_id`))".chr(13).chr(10);
         $sql .= "ENGINE=MyISAM";
         $this->db->query($sql);
 
-        /**
-         * @Table(name="spsr_track_msg")
-         */
         $sql = "CREATE TABLE IF NOT EXISTS `" . DB_PREFIX . "spsr_track_msg` (".chr(13).chr(10);
         $sql .= "`spsr_track_msg_id` INT(11) NOT NULL AUTO_INCREMENT,".chr(13).chr(10);
         $sql .= "`order_id` INT(11) DEFAULT NULL,".chr(13).chr(10);
@@ -114,8 +102,9 @@ class ModelModuleSPSR extends Model
         $this->db->query($sql);
 
         // Заполнение таблицы статусов СПСР
-        $sql = "TRUNCATE TABLE `" . DB_PREFIX . "spsr_order_status`;";
-        $sql .= "INSERT INTO `" . DB_PREFIX . "spsr_order_status` (`event_id`, `event_code`, `delivery_id`, `name`)".chr(13).chr(10);
+        $sql = "TRUNCATE TABLE `" . DB_PREFIX . "spsr_order_status`";
+        $this->db->query($sql);
+        $sql = "INSERT INTO `" . DB_PREFIX . "spsr_order_status` (`event_id`, `event_code`, `delivery_id`, `name`)".chr(13).chr(10);
         $sql .= "VALUES (1,'_CLCCH',NULL,'Отправление готово к вручению в офисе.'),".chr(13).chr(10);
         $sql .= "(2,'_CLCCS',NULL,'Оформлен самовывоз.'),".chr(13).chr(10);
         $sql .= "(3,'_CLCLB',NULL,'Отправление выдано курьеру для доставки.'),".chr(13).chr(10);
@@ -265,6 +254,24 @@ class ModelModuleSPSR extends Model
         $sql .= "(150,'INBAD',120,'Отправление не доставлено. Доставлена часть товара в отправлении'),".chr(13).chr(10);
         $sql .= "(175,'INJNK',NULL,'Отправление утилизировано.')";
         $this->db->query($sql);
+
+        // Заполнение таблицы типов вложимого
+        $sql = "TRUNCATE TABLE `" . DB_PREFIX . "spsr_product_type`";
+        $this->db->query($sql);
+        $sql = "INSERT INTO `" . DB_PREFIX . "spsr_product_type` (`spsr_product_type_id`, `name`)".chr(13).chr(10);
+        $sql .= "VALUES (15, 'документы и печатная продукция'),".chr(13).chr(10);
+        $sql .= "(16, 'товары народного потребления (без техники)'),".chr(13).chr(10);
+        $sql .= "(17, 'техника и электроника без ГСМ и без АКБ (единичное количество)'),".chr(13).chr(10);
+        $sql .= "(18, 'драгоценности'),".chr(13).chr(10);
+        $sql .= "(19, 'медикаменты и БАДы'),".chr(13).chr(10);
+        $sql .= "(20, 'косметика и парфюмерия'),".chr(13).chr(10);
+        $sql .= "(21, 'продукты питания (партия)'),".chr(13).chr(10);
+        $sql .= "(22, 'техника и электроника без ГСМ (партия) или с АКБ'),".chr(13).chr(10);
+        $sql .= "(23, 'опасные грузы'),".chr(13).chr(10);
+        $sql .= "(24, 'товары народного потребления (без техники, партия)')".chr(13).chr(10);
+        $this->db->query($sql);
+
+        unset($sql);
     }
 
     public function getUploadData($orders)
@@ -329,10 +336,11 @@ class ModelModuleSPSR extends Model
 
                 $u_products[] = array(
                     'order_product_id' => $product['order_product_id'],
-                    'name' => $product['name'],
+                    'name' => preg_replace("/&quot;/", '', $product['name']),
                     'option' => $this->getProductOptions($product['order_product_id']),
                     'quantity' => $product['quantity'],
-                    'price' => $price
+                    'price' => $price,
+                    'total' => (float)$product['quantity']*(float)$price
                 );
             }
 
@@ -340,6 +348,7 @@ class ModelModuleSPSR extends Model
                 'order_id' => $order_info['order_id'],
                 'paid' => $paid,
                 'total' => $totals['total'],
+                'products_cost' => $totals['total'] - $totals['shipping_cost'],
                 'weight' => $weight,
                 'shipping_customer' => $order_info['shipping_firstname'] . ' ' . $order_info['shipping_lastname'],
                 'shipping_postcode' => $order_info['shipping_postcode'],
@@ -364,7 +373,8 @@ class ModelModuleSPSR extends Model
         return $data;
     }
 
-    public function getUploadDataByStatusId($order_status_id) {
+    public function getUploadDataByStatusId($order_status_id)
+    {
         $sql = "SELECT o.order_id".chr(13).chr(10);
         $sql .= "FROM `" . DB_PREFIX . "order` o".chr(13).chr(10);
         $sql .= "WHERE o.order_status_id = '" . (int)$order_status_id . "'";
@@ -381,7 +391,8 @@ class ModelModuleSPSR extends Model
         return $orders;
     }
 
-    public function saveTrackNumbers($data) {
+    public function saveTrackNumbers($data)
+    {
         foreach ($data as $track) {
             if ((int)$track['spsr_track_id'] > 0) {
                 $sql = "INSERT INTO `" . DB_PREFIX . "spsr_track` SET order_id = '" . (int)$track['order_id'] . "', spsr_track_id = '" . (int)$track['spsr_track_id'] . "', date_added = NOW();";
@@ -397,9 +408,155 @@ class ModelModuleSPSR extends Model
         }
     }
 
-    public function getSpsrStatuses() {
+    public function getSpsrStatuses()
+    {
         $query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "spsr_order_status`");
         return $query->rows;
+    }
+
+    public function getSpsrProductTypes()
+    {
+        $query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "spsr_product_type`");
+        return $query->rows;
+    }
+
+    public function getCountries() {
+        $sql = "SELECT * FROM `" . DB_PREFIX . "country`".chr(13).chr(10);
+        $sql .= "WHERE `status` = 1".chr(13).chr(10);
+        $sql .= "ORDER BY name";
+        $query = $this->db->query($sql);
+        return $query->rows;
+    }
+
+    public function getZones($country_id = 0) {
+        $sql = "SELECT * FROM `" . DB_PREFIX . "zone`".chr(13).chr(10);
+        $sql .= "WHERE `status` = 1".chr(13).chr(10);
+        $sql .= "ORDER BY name";
+        $query = $this->db->query($sql);
+        return $query->rows;
+    }
+
+    public function getSpsrCities()
+    {
+        $sql = "SELECT * FROM `" . DB_PREFIX . "spsr_cities` ORDER BY `city_name`";
+        $query = $this->db->query($sql);
+        return $query->rows;
+    }
+
+    public function getSpsrCityByName($city_name) {
+        $city = preg_replace('/^\s*г\.?\s+/isu', '', $city_name);
+        $sql = "SELECT *".chr(13).chr(10);
+        $sql .= "FROM `" . DB_PREFIX ."spsr_cities`".chr(13).chr(10);
+        $sql .= "WHERE city_name = '" . $this->db->escape($city) . "'";
+        $query = $this->db->query($sql);
+
+        return $query->row;
+    }
+
+    public function setSpsrCities($data)
+    {
+        $this->db->query("TRUNCATE TABLE `" . DB_PREFIX . "spsr_cities`");
+        foreach ($data as $city) {
+            $sql = "INSERT INTO `" . DB_PREFIX . "spsr_cities` SET ";
+
+            $attr = array();
+            $attr[] = "city_id = '" . (int)$city['city_id'] . "'";
+            $attr[] = "city_owner_id = '" . (int)$city['city_owner_id'] . "'";
+            $attr[] = "city_name = '" . $this->db->escape($city['city_name']) . "'";
+            $attr[] = "region_id = '" . (int)$city['region_id'] . "'";
+            $attr[] = "region_owner_id = '" . (int)$city['region_owner_id'] . "'";
+            $attr[] = "region_name = '" . $this->db->escape($city['region_name']) . "'";
+            $attr[] = "country_id = '" . (int)$city['country_id'] . "'";
+            $attr[] = "country_owner_id = '" . (int)$city['country_owner_id'] . "'";
+            $attr[] = "cod = '" . (int)$city['cod'] . "'";
+            $sql .= implode(',', $attr);
+
+            $this->db->query($sql);
+        }
+    }
+
+    public function setSpsrOffices($data)
+    {
+        $this->db->query("TRUNCATE TABLE `" . DB_PREFIX . "spsr_offices`");
+
+        foreach ($data as $office) {
+            $sql = "INSERT INTO `" . DB_PREFIX . "spsr_offices` SET ";
+
+            $attr = array();
+            $attr[] = "office_id = '" . (int)$office['office_id'] . "'";
+            $attr[] = "office_owner_id = '" . (int)$office['office_owner_id'] . "'";
+            $attr[] = "city_name = '" . $this->db->escape($office['city_name']) . "'";
+            $attr[] = "region = '" . $this->db->escape($office['region']) . "'";
+            $attr[] = "address = '" . $this->db->escape($office['address']) . "'";
+            $attr[] = "comment = '" . $this->db->escape($office['comment']) . "'";
+            $attr[] = "phone = '" . $this->db->escape($office['phone']) . "'";
+            $attr[] = "timezone_msk = '" . $this->db->escape($office['timezone_msk']) . "'";
+            $attr[] = "worktime = '" . $this->db->escape($office['worktime']) . "'";
+            $attr[] = "email = '" . $this->db->escape($office['email']) . "'";
+            $attr[] = "latitude = '" . $this->db->escape($office['latitude']) . "'";
+            $attr[] = "longitude = '" . $this->db->escape($office['longitude']) . "'";
+            $attr[] = "phones = '" . $this->db->escape($office['phones']) . "'";
+            $sql .= implode(',', $attr);
+            $this->db->query($sql);
+        }
+    }
+
+    public function setTrackNumbers($data)
+    {
+        foreach ($data as $invoice) {
+            if (mb_strtolower($invoice['status']) == 'rejected' && count($invoice['messages']) > 0) {
+                foreach ($invoice['messages'] as $msg) {
+                    $sql = "INSERT INTO `" . DB_PREFIX . "spsr_track_msg` SET ";
+
+                    $attr = array();
+                    $attr[] = "order_id = '" . (int)$invoice['order_id'] . "'";
+                    $attr[] = "spsr_track_id = '" . $this->db->escape($invoice['track']) . "'";
+                    $attr[] = "msg_code = '" . $this->db->escape($msg['code']) . "'";
+                    $attr[] = "msg_text = '" . $this->db->escape($msg['text']) . "'";
+                    $attr[] = "date_added = NOW()";
+                    $sql .= implode(',', $attr);
+                    $this->db->query($sql);
+                }
+            } else {
+                if ($this->issetTrackNumber($invoice) == false) {
+                    $sql = "INSERT INTO `" . DB_PREFIX . "spsr_track` SET ";
+
+                    $attr = array();
+                    $attr[] = "track_number = '" . $this->db->escape($invoice['track']) . "'";
+                    $attr[] = "order_id = '" . (int)$invoice['order_id'] . "'";
+                    $attr[] = "date_added = NOW()";
+                    $sql .= implode(',', $attr);
+                    $this->db->query($sql);
+                    $spsr_track_id = $this->db->getLastId();
+
+                    if (count($invoice['messages']) > 0) {
+                        foreach ($invoice['messages'] as $msg) {
+                            $sql = "INSERT INTO `" . DB_PREFIX . "spsr_track_msg` SET ";
+
+                            $attr = array();
+                            $attr[] = "order_id = '" . (int)$invoice['order_id'] . "'";
+                            $attr[] = "spsr_track_id = '" . (int)$spsr_track_id . "'";
+                            $attr[] = "msg_code = '" . $this->db->escape($msg['code']) . "'";
+                            $attr[] = "msg_text = '" . $this->db->escape($msg['text']) . "'";
+                            $attr[] = "date_added = NOW()";
+                            $sql .= implode(',', $attr);
+                            $this->db->query($sql);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private function issetTrackNumber($data)
+    {
+        $query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "spsr_track` WHERE track_number = '" . $this->db->escape($data['track']) . "' AND order_id = '" . (int)$data['order_id'] . "'");
+        // Если получаем хотя бы одну строку в результате - трек уже есть и возвращаем TRUE
+        if ($query->num_rows > 0) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     private function checkPaid($order_id) {
@@ -472,10 +629,15 @@ class ModelModuleSPSR extends Model
 
         $opt_name = '';
         foreach ($query->rows as $option) {
-            $opt_name .= '- '.$option['name'].': '.$option['value'].chr(13).chr(10);
+            $opt_name .= ' / '.$option['name'].': '.$option['value'];
         }
 
-        return $opt_name;
+        $result = array(
+            'to_req' => $opt_name,
+            'to_html' => preg_replace('/\//', '<br /> - ', $opt_name)
+        );
+
+        return $result;
 
     }
 }

@@ -9,10 +9,12 @@ $_['text_shipping']				= 'Стоимость доставки';
 $_['text_discount']				= 'Скидка';
 $_['text_coupon']				= 'Купон';
 $_['text_total']				= 'Итого';
+$_['text_updated']              = 'Обновлено:';
+$_['text_office_upd_alert']     = '<span style="color:#ff0000;">Внимание!</span> Обновление списка офисов займет продолжительное время!';
 
 // Тарифы
-$_['t_zebon']					= 'Зебра-Онлайн';
-$_['t_gepon']					= 'Гепард-Онлайн';
+$_['t_zebon']                   = 'Зебра-Онлайн';
+$_['t_gepon']                   = 'Гепард-Онлайн';
 
 // Тип возврата сопроводительных документов
 $_['vsd_standart']				= 'Стандартный';
@@ -24,11 +26,16 @@ $_['trf_courier']				= 'Курьерская';
 $_['trf_pvz']					= 'ПВЗ';
 $_['trf_postomat']				= 'Постоматы';
 
+$_['ct_new']                    = 'Новый';
+$_['ct_update']                 = 'Обновление';
+
 // Опции заказа
 $_['entry_order_id']			= '# заказа:';
+$_['entry_paid']                = 'Оплачено:';
 $_['entry_total']				= 'Сумма заказа:';
 $_['entry_shipping_cost']		= 'Сумма доставки:';
-$_['entry_products']			= 'Сумма товаров:';
+$_['entry_products_cost']		= 'Сумма товаров:';
+$_['entry_product_type']        = 'Вид товара:';
 $_['entry_cod']					= 'Оплата при получении:';
 $_['entry_tariff']				= 'Тариф:';
 $_['entry_partdelivery']		= 'Частичная доставка:';
@@ -51,6 +58,8 @@ $_['entry_smstoreceiver']		= 'SMS-оповещение отправителя:';
 $_['entry_smsreceivernumber']	= 'Номер телефона отправителя для sms-оповещения:';
 $_['entry_tariff_type']			= 'Тип тарифа:';
 $_['entry_upload_file']			= 'Выберите файл:';
+$_['entry_create_type']         = 'Режим создания накладной:';
+$_['entry_spsr_server']         = 'Рабочий сервер SPSR';
 
 // Авторизация
 $_['entry_login']				= 'Логин:';
@@ -85,6 +94,7 @@ $_['column_comment']			= 'Комментарий';
 $_['column_action']				= 'Действие';
 
 // Вкладки при выгрузке заказов
+$_['tab_order_general']         = 'Данные';
 $_['tab_order_shipping']		= 'Получатель';
 $_['tab_order_products']		= 'Товары';
 $_['tab_order_options']			= 'Опции';
@@ -99,10 +109,13 @@ $_['tab_status_rules']			= 'Обновление статусов';
 $_['tab_upload_tariff']			= 'Загрузка тарифов';
 
 // Кнопки
-$_['button_sendorders']			= 'Выгрузка заказов';
+$_['button_prepare_orders']		= 'Выгрузка заказов';
 $_['button_add_rule']			= 'Добавить правило';
+$_['button_load_cities']        = 'Обновить список городов обслуживания';
+$_['button_load_offices']       = 'Обновить список офисов СПСР';
 
 // Errors
-$_['error_permission']			= 'У Вас нет прав для управления этим модулем!';
+$_['error_permission']          = 'У Вас нет прав для управления этим модулем!';
+$_['error_curl']                = 'Для работы модуля трубуется расширение CURL!';
 
 ?>
