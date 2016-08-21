@@ -69,6 +69,20 @@
                                 <label for="postomat"><?php echo $checkbox_postomat; ?></label>
                             </td>
                         </tr>
+                        <tr>
+                            <td><?php echo $entry_debug; ?></td>
+                            <td>
+                                <select name="spsr_shipping_debug">
+                                    <?php if ($spsr_shipping_debug) { ?>
+                                    <option value="1" selected="selected"><?php echo $text_yes; ?></option>
+                                    <option value="0"><?php echo $text_no; ?></option>
+                                    <?php } else { ?>
+                                    <option value="1"><?php echo $text_yes; ?></option>
+                                    <option value="0" selected="selected"><?php echo $text_no; ?></option>
+                                    <?php } ?>
+                                </select>
+                            </td>
+                        </tr>
                     </tbody>
                     </table>
                 </div>
@@ -94,12 +108,12 @@
                             </td>
                             <td class="left">
                                 <select name="spsr_shipping_discount[<?php echo $row; ?>][tariff]">
-                                    <?php if ($discount['tariff'] == 'zebon') { ?>
-                                    <option value="zebon" selected="selected"><?php echo $t_zebon; ?></option>
-                                    <option value="gepon"><?php echo $t_gepon; ?></option>
+                                    <?php foreach ($tariffs as $key => $tariff) { ?>
+                                    <?php if ($discount['tariff'] == $key) { ?>
+                                    <option value="<?php echo $key; ?>" selected="selected"><?php echo $tariff; ?></option>
                                     <?php } else { ?>
-                                    <option value="zebon"><?php echo $t_zebon; ?></option>
-                                    <option value="gepon" selected="selected"><?php echo $t_gepon; ?></option>
+                                    <option value="<?php echo $key; ?>"><?php echo $tariff; ?></option>
+                                    <?php } ?>
                                     <?php } ?>
                                 </select>
                             </td>

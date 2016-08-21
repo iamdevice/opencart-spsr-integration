@@ -13,7 +13,8 @@ class ControllerShippingSPSR extends Controller
         'courier',
         'pvz',
         'postomat',
-        'discount'
+        'discount',
+        'debug'
     );
 
     public function install()
@@ -80,6 +81,17 @@ class ControllerShippingSPSR extends Controller
 
         $this->load->model('localisation/geo_zone');
         $this->data['geo_zones'] = $this->model_localisation_geo_zone->getGeoZones();
+
+        $this->data['tariffs'] = array(
+            'zebon-0' => $this->language->get('t_zebon') . ' - ' . $this->language->get('text_all_method'),
+            'zebon-1' => $this->language->get('t_zebon') . ' - ' . $this->language->get('checkbox_courier'),
+            'zebon-2' => $this->language->get('t_zebon') . ' - ' . $this->language->get('checkbox_pvz'),
+            'zebon-3' => $this->language->get('t_zebon') . ' - ' . $this->language->get('checkbox_postomat'),
+            'gepon-0' => $this->language->get('t_gepon') . ' - ' . $this->language->get('text_all_method'),
+            'gepon-1' => $this->language->get('t_gepon') . ' - ' . $this->language->get('checkbox_courier'),
+            'gepon-2' => $this->language->get('t_gepon') . ' - ' . $this->language->get('checkbox_pvz'),
+            'gepon-3' => $this->language->get('t_gepon') . ' - ' . $this->language->get('checkbox_postomat')
+        );
 
         $this->template = 'shipping/spsr.tpl';
         $this->children = array(

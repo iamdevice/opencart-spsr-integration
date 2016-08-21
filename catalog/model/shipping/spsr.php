@@ -7,12 +7,6 @@ class ModelShippingSpsr extends Model
         $this->language->load('shipping/spsr');
 
         $weight = $this->cart->getWeight();
-        $data = array(
-            'tariff' => 'zebon',
-            'total' => $this->cart->getSubTotal(),
-            'geo_zones' => $this->getGeoZones($address['country_id'], $address['zone_id'])
-        );
-        $discounts = $this->getDiscounts($data);
 
         $data = array(
             'tariff' => 'zebon',
@@ -20,10 +14,11 @@ class ModelShippingSpsr extends Model
             'weight' => $weight,
             'city' => $address['city']
         );
-        $tariff = $this->getTariff($data);
+        $tariffs = $this->getTariff($data);
 
-        if (count($tariff) > 0) {
+        if (count($tariffs) > 0) {
             $status = true;
+
         } else {
             $status = false;
         }
@@ -31,22 +26,57 @@ class ModelShippingSpsr extends Model
         $method_data = array();
 
         if ($status) {
-            if ($discounts[0]['prefix'] == '+') {
-                $price = $tariff['price'] + $discounts[0]['discount'];
-            } else {
-                $price = $tariff['price'] - $discounts[0]['discount'];
-            }
-
-            $method_title = $this->language->get('text_title') . ' ' . $this->language->get('text_to_courier') . '<br />' . $this->language->get('text_delivery_days') . ' ' . $tariff['days'] . ' ' . $this->language->get('text_work_days');
+            //TODO модификация цены тарифа в соответствии со скидками/наценками
 
             $quote_data = array();
-            $quote_data['spsr'] = array(
-                'code' => 'spsr.zebon1',
-                'title' => $method_title,
-                'cost' => $price,
-                'tax_class_id' => 0,
-                'text' => $this->currency->format($price)
-            );
+
+            foreach ($tariffs as $tariff) {
+                $type_id = (int)$tariff['tariff_type'];
+
+                switch ($type_id) {
+                    case 1:
+                        $type = $this->language->get('text_to_courier');
+                        break;
+                    case 2:
+                        $type = $this->language->get('text_to_pvz');
+                        break;
+                    case 3:
+                        $type = $this->language->get('text_to_postomat');
+                        break;
+                    default:
+                        $type = $this->language->get('text_to_courier');
+                        break;
+                }
+
+                $data = array(
+                    'tariff' => 'zebon',
+                    'type_id' => $type_id,
+                    'total' => $this->cart->getSubTotal(),
+                    'geo_zones' => $this->getGeoZones($address['country_id'], $address['zone_id'])
+                );
+                $discount = $this->getDiscounts($data);
+                $code = $tariff['tariff'].$type_id;
+                $title = $this->language->get('text_title') . ' ' . $type . '<br />' . $this->language->get('text_delivery_days') . $tariff['days'] . $this->language->get('text_work_days');
+
+                $price = $tariff['price'];
+                if ($discount['prefix'] == '+') {
+                    $price += $discount['discount'];
+                } else {
+                    $price -= $discount['discount'];
+                }
+                // В случае если сумма скидки оказывается больше, чем стоимость доставки - ставим цену доставки в 0
+                if ($price < 0) {
+                    $price = 0;
+                }
+
+                $quote_data[$code] = array(
+                    'code' => 'spsr.' . $code,
+                    'title' => $title,
+                    'cost' => $price,
+                    'tax_class_id' => 0,
+                    'text' => $this->currency->format($price)
+                );
+            }
 
             $method_data = array(
                 'code' => 'spsr',
@@ -63,16 +93,16 @@ class ModelShippingSpsr extends Model
     private function getTariff($data)
     {
         $tariff = $this->db->escape($data['tariff']);
-        $type_id = (int)$data['type_id'];
         $weight = (float)$data['weight'] + 0.5;
         $weight = (int)round($weight, 0, PHP_ROUND_HALF_DOWN);
         $city = $this->db->escape(preg_replace('/^\s*г\.?\s+/isu', '', $data['city']));
 
         $sql = "SELECT * FROM `" . DB_PREFIX . "spsr_tariff`".chr(13).chr(10);
-        $sql .= "WHERE tariff = '" . $tariff . "' AND tariff_type = '" . $type_id . "' AND weight = '" . $weight . "' AND city_to LIKE '%" . $city . "%'";
+        $sql .= "WHERE tariff = '" . $tariff . "' AND weight = '" . $weight . "' AND city_to LIKE '%" . $city . "%'".chr(13).chr(10);
+        $sql .= "ORDER BY tariff_type";
         $query = $this->db->query($sql);
 
-        return $query->row;
+        return $query->rows;
     }
 
     private function getGeoZones($country_id, $zone_id)
@@ -88,16 +118,18 @@ class ModelShippingSpsr extends Model
     private function getDiscounts($data)
     {
         $tariff = $data['tariff'];
+        $type_id = $data['type_id'];
         $total = $data['total'];
 
         $discounts = array();
         $spsr_shipping_discounts = $this->config->get('spsr_shipping_discount');
 
         foreach ($spsr_shipping_discounts as $discount) {
-            if ($discount['tariff'] == $tariff && in_array($discount['geo_zone'], array_column($data['geo_zones'], 'geo_zone_id')) && (int)$total >= (int)$discount['sum']) {
+            $tariff_info = $this->getTariffAndTypeFromString($discount['tariff']);if ($tariff == $tariff_info['name'] && in_array($discount['geo_zone'], array_column($data['geo_zones'], 'geo_zone_id')) && (int)$total >= (int)$discount['sum'] && ($tariff_info['type_id'] == $type_id || $tariff_info['type_id'] == 0)) {
                 $discounts[] = array(
                     'sum' => $discount['sum'],
-                    'tariff' => $discount['tariff'],
+                    'tariff' => $tariff_info['name'],
+                    'tariff_type' => $tariff_info['type_id'],
                     'geo_zone' => $discount['geo_zone'],
                     'prefix' => $discount['prefix'],
                     'discount' => $discount['discount'],
@@ -110,7 +142,17 @@ class ModelShippingSpsr extends Model
             return ($a['sort_order'] - $b['sort_order']);
         });
 
-        return $discounts;
+        return $discounts[0];
+    }
+
+    private function getTariffAndTypeFromString($tariff)
+    {
+        $name = mb_substr($tariff, 0, strlen($tariff)-2, 'UTF-8');
+        $type = mb_substr($tariff, strlen($tariff)-1, 1, 'UTF-8');
+        return array(
+            'name' => $name,
+            'type_id' => (int)$type
+        );
     }
 }
 
