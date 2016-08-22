@@ -18,6 +18,36 @@ class ModelShippingSPSR extends Model
         $sql .= "PRIMARY KEY (`spsr_tariff_id`))".chr(13).chr(10);
         $sql .= "ENGINE=MyISAM;";
         $this->db->query($sql);
+
+        $sql = "CREATE TABLE IF NOT EXISTS `" . DB_PREFIX . "spsr_tariff_type` (".chr(13).chr(10);
+        $sql .= "`spsr_tariff_type_id` INT(11) NOT NULL AUTO_INCREMENT,".chr(13).chr(10);
+        $sql .= "`tariff_code` VARCHAR(10) NOT NULL,".chr(13).chr(10);
+        $sql .= "`tariff_name` VARCHAR(50) NOT NULL,".chr(13).chr(10);
+        $sql .= "PRIMARY KEY (`spsr_tariff_type_id`))".chr(13).chr(10);
+        $sql .= "ENGINE=MyISAM";
+        $this->db->query($sql);
+
+        $sql = "TRUNCATE TABLE `" . DB_PREFIX . "spsr_tariff_type`";
+        $this->db->query($sql);
+
+        $sql = "INSERT INTO `" . DB_PREFIX . "spsr_tariff_type` (`tariff_code`, `tariff_name`) VALUES".chr(13).chr(10);
+        $sql .= "('Dox', 'Колибри-документ'),".chr(13).chr(10);
+        $sql .= "('Gep13', 'Гепард-Экспресс 13'),".chr(13).chr(10);
+        $sql .= "('Gep18', 'Гепард-Экспресс 18'),".chr(13).chr(10);
+        $sql .= "('GepEx', 'Гепард-Экспресс'),".chr(13).chr(10);
+        $sql .= "('PelSt', 'Пеликан-Стандарт'),".chr(13).chr(10);
+        $sql .= "('PelEc', 'Пеликан-Эконом'),".chr(13).chr(10);
+        $sql .= "('BisCa', 'Бизон-Карго'),".chr(13).chr(10);
+        $sql .= "('BisAv', 'Бизон-Авиа'),".chr(13).chr(10);
+        $sql .= "('Freig', 'Фрахт'),".chr(13).chr(10);
+        $sql .= "('PelOn', 'Пеликан-Онлайн'),".chr(13).chr(10);
+        $sql .= "('GepOn', 'Гепард-Онлайн'),".chr(13).chr(10);
+        $sql .= "('ZebOn', 'Зебра-Онлайн'),".chr(13).chr(10);
+        $sql .= "('PelInt', 'Pelican International'),".chr(13).chr(10);
+        $sql .= "('GepInt', 'Guepard-International')";
+        $this->db->query($sql);
+
+        unset($sql);
     }
 
     public function getSpsrCities($data)

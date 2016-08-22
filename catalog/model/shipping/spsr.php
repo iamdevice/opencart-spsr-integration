@@ -26,8 +26,6 @@ class ModelShippingSpsr extends Model
         $method_data = array();
 
         if ($status) {
-            //TODO модификация цены тарифа в соответствии со скидками/наценками
-
             $quote_data = array();
 
             foreach ($tariffs as $tariff) {
@@ -59,14 +57,17 @@ class ModelShippingSpsr extends Model
                 $title = $this->language->get('text_title') . ' ' . $type . '<br />' . $this->language->get('text_delivery_days') . $tariff['days'] . $this->language->get('text_work_days');
 
                 $price = $tariff['price'];
-                if ($discount['prefix'] == '+') {
-                    $price += $discount['discount'];
-                } else {
-                    $price -= $discount['discount'];
-                }
-                // В случае если сумма скидки оказывается больше, чем стоимость доставки - ставим цену доставки в 0
-                if ($price < 0) {
-                    $price = 0;
+
+                if (is_array($discount)) {
+                    if ($discount['prefix'] == '+') {
+                        $price += $discount['discount'];
+                    } else {
+                        $price -= $discount['discount'];
+                    }
+                    // В случае если сумма скидки оказывается больше, чем стоимость доставки - ставим цену доставки в 0
+                    if ($price < 0) {
+                        $price = 0;
+                    }
                 }
 
                 $quote_data[$code] = array(
@@ -76,6 +77,27 @@ class ModelShippingSpsr extends Model
                     'tax_class_id' => 0,
                     'text' => $this->currency->format($price)
                 );
+
+                if ($type_id == 2 && !empty($address['city'])) {
+                    $html = '<br /><span id="pvz"></span>'.chr(13).chr(10);
+                    $html .= '<select name="spsr_office_id" id="spsr_office_id">'.chr(13).chr(10);
+                    foreach ($this->getSpsrOffices($address['city']) as $office) {
+                        $html .= '<option value="' . $office['office_id'] . '">' . $office['address'] . '</option>'.chr(13).chr(10);
+                    }
+                    $html .= '</select>';
+                    $this->log->write($html);
+
+                    $quote_data[$code]['sub'] = $html;
+                }
+
+                if ($type_id == 3) {
+                    $html = '<br /><span id="address"></span>'.chr(13).chr(10);
+                    $html .= '<a class="button btn" onclick="PickPoint.open(pickpoint_choose);return false;">Выберите</a>'.chr(13).chr(10);
+                    $html .= '<input type="hidden" id="pickpoint_id" name="pickpoint_id" value="" />';
+                    $html .= '<script type="text/javascript" src="catalog/view/javascript/spsr.js"></script>';
+
+                    $quote_data[$code]['sub'] = $html;
+                }
             }
 
             $method_data = array(
@@ -102,6 +124,12 @@ class ModelShippingSpsr extends Model
         $sql .= "ORDER BY tariff_type";
         $query = $this->db->query($sql);
 
+        return $query->rows;
+    }
+
+    private function getSpsrOffices($city)
+    {
+        $query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "spsr_offices` WHERE LOWER(`city_name`) LIKE LOWER('%" . $this->db->escape($city) . "%')");
         return $query->rows;
     }
 
@@ -142,7 +170,11 @@ class ModelShippingSpsr extends Model
             return ($a['sort_order'] - $b['sort_order']);
         });
 
-        return $discounts[0];
+        if (count($discounts) > 0) {
+            return $discounts[0];
+        } else {
+            return false;
+        }
     }
 
     private function getTariffAndTypeFromString($tariff)
