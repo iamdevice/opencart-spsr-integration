@@ -47,6 +47,24 @@ class ModelShippingSPSR extends Model
         $sql .= "('GepInt', 'Guepard-International')";
         $this->db->query($sql);
 
+        $sql = "CREATE TABLE IF NOT EXISTS `" . DB_PREFIX . "spsr_postamat_order` (".chr(13).chr(10);
+        $sql .= "`spsr_postamat_order_id` INT(11) NOT NULL AUTO_INCREMENT,".chr(13).chr(10);
+        $sql .= "`order_id` INT(11) NOT NULL,".chr(13).chr(10);
+        $sql .= "`postamat_id` VARCHAR(20) NOT NULL,".chr(13).chr(10);
+        $sql .= "`postamat_name` VARCHAR(100) NOT NULL,".chr(13).chr(10);
+        $sql .= "`postamat_address` VARCHAR(150) NOT NULL,".chr(13).chr(10);
+        $sql .= "PRIMARY KEY (`spsr_postamat_order_id`))".chr(13).chr(10);
+        $sql .= "ENGINE=MyISAM";
+        $this->db->query($sql);
+
+        $sql = "CREATE TABLE IF NOT EXISTS `" . DB_PREFIX . "spsr_pvz_order` (".chr(13).chr(10);
+        $sql .= "`spsr_pvz_order_id` INT(11) NOT NULL AUTO_INCREMENT,".chr(13).chr(10);
+        $sql .= "`order_id` INT(11) NOT NULL,".chr(13).chr(10);
+        $sql .= "`spsr_office_id` INT(11) NOT NULL,".chr(13).chr(10);
+        $sql .= "PRIMARY KEY (`spsr_pvz_order_id`))".chr(13).chr(10);
+        $sql .= "ENGINE=MyISAM";
+        $this->db->query($sql);
+
         unset($sql);
     }
 

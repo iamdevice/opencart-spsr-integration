@@ -18,8 +18,11 @@ class ModelShippingSpsr extends Model
 
         if (count($tariffs) > 0) {
             $status = true;
-
         } else {
+            $status = false;
+        }
+
+        if (empty($address['city'])) {
             $status = false;
         }
 
@@ -80,12 +83,16 @@ class ModelShippingSpsr extends Model
 
                 if ($type_id == 2 && !empty($address['city'])) {
                     $html = '<br /><span id="pvz"></span>'.chr(13).chr(10);
-                    $html .= '<select name="spsr_office_id" id="spsr_office_id">'.chr(13).chr(10);
+                    $html .= '<select name="spsr_office_id" id="spsr_office_id" data-id="' . $code . '">'.chr(13).chr(10);
+                    $i = 0;
                     foreach ($this->getSpsrOffices($address['city']) as $office) {
-                        $html .= '<option value="' . $office['office_id'] . '">' . $office['address'] . '</option>'.chr(13).chr(10);
+                        if ($i == 0) {
+                            $html .= '<option value="' . $office['office_id'] . '" selected="selected">' . $office['address'] . '</option>'.chr(13).chr(10);
+                        } else {
+                            $html .= '<option value="' . $office['office_id'] . '">' . $office['address'] . '</option>' . chr(13) . chr(10);
+                        }
                     }
                     $html .= '</select>';
-                    $this->log->write($html);
 
                     $quote_data[$code]['sub'] = $html;
                 }
@@ -93,7 +100,6 @@ class ModelShippingSpsr extends Model
                 if ($type_id == 3) {
                     $html = '<br /><span id="address"></span>'.chr(13).chr(10);
                     $html .= '<a class="button btn" onclick="PickPoint.open(pickpoint_choose);return false;">Выберите</a>'.chr(13).chr(10);
-                    $html .= '<input type="hidden" id="pickpoint_id" name="pickpoint_id" value="" />';
                     $html .= '<script type="text/javascript" src="catalog/view/javascript/spsr.js"></script>';
 
                     $quote_data[$code]['sub'] = $html;

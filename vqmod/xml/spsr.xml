@@ -1,0 +1,137 @@
+<modification>
+    <id><![CDATA[SPSR Integration]]></id>
+    <author><![CDATA[Aleksandr Kozhevnikov]]></author>
+    <version><![CDATA[1.2b]]></version>
+    <vqmver><![CDATA[2.5.1]]></vqmver>
+
+    <file name="catalog/controller/checkout/simplecheckout_shipping.php">
+        <operation error="log">
+            <search position="before"><![CDATA[$selectFirst = $this->simplecheckout->getSettingValue('selectFirst', 'shipping');]]></search>
+            <add><![CDATA[
+        // SPSR
+        if (isset($this->request->post['pickpoint_id'])) {
+	        $this->_templateData['pickpoint_id'] = $this->request->post['pickpoint_id'];
+	        $this->_templateData['pickpoint_address'] = $this->request->post['pickpoint_address'];
+	        $this->_templateData['pickpoint_name'] = $this->request->post['pickpoint_name'];
+        } else {
+            $this->_templateData['pickpoint_id'] = '';
+	        $this->_templateData['pickpoint_address'] = '';
+	        $this->_templateData['pickpoint_name'] = '';
+        }
+        if (isset($this->request->post['spsr_office_id'])) {
+            $this->_templateData['spsr_office_id'] = $this->request->post['spsr_office_id'];
+        } else {
+            $this->_templateData['spsr_office_id'] = 0;
+        }
+            ]]></add>
+        </operation>
+    </file>
+
+    <file name="catalog/view/theme/*/template/checkout/simplecheckout_shipping.tpl">
+        <operation error="log">
+            <search position="after"><![CDATA[<input type="hidden" name="shipping_method_checked" value="<?php echo $checked_code ?>" />]]></search>
+            <add><![CDATA[
+            <?php // SPSR ?>
+            <input type="hidden" name="pickpoint_id" id="pickpoint_id" value="<?php echo $pickpoint_id; ?>" />
+            <input type="hidden" name="pickpoint_address" id="pickpoint_address" value="<?php echo $pickpoint_address; ?>" />
+            <input type="hidden" name="pickpoint_name" id="pickpoint_name" value="<?php echo $pickpoint_name; ?>" />
+            ]]></add>
+        </operation>
+        <operation error="log">
+            <search position="bottom"></search>
+            <add><![CDATA[
+                <script type="text/javascript">
+                    $('#address').html($('#pickpoint_name').val()+'<br />'+$('#pickpoint_address').val());
+                    <?php if ($spsr_office_id > 0) { ?>
+                    $('#spsr_office_id').val(<?php echo $spsr_office_id; ?>);
+                    <?php } ?>
+                </script>
+            ]]></add>
+        </operation>
+    </file>
+
+    <file name="catalog/controller/checkout/simplecheckout.php">
+        <operation error="log">
+            <search position="before"><![CDATA[$this->load->model('checkout/order');]]></search>
+            <add><![CDATA[
+        if (isset($this->request->post['spsr_office_id']) && (int)$this->request->post['spsr_office_id'] > 0) {
+            $data['spsr_office_id'] = (int)$this->request->post['spsr_office_id'];
+        }
+        if (!empty($this->request->post['pickpoint_id'])) {
+            $data['postamat_id'] = $this->request->post['pickpoint_id'];
+        }
+
+        if (!empty($this->request->post['pickpoint_address'])) {
+            $data['postamat_address'] = $this->request->post['pickpoint_address'];
+        }
+
+        if (!empty($this->request->post['pickpoint_name'])) {
+            $data['postamat_name'] = $this->request->post['pickpoint_name'];
+        }
+            ]]></add>
+        </operation>
+    </file>
+
+    <file name="catalog/model/checkout/order.php">
+        <operation error="log">
+            <search position="before" offset="1"><![CDATA[?>]]></search>
+            <add><![CDATA[
+            private function addSpsrOrderDeliveryInfo($data)
+            {
+                if ($data['type'] == 'spsr.zebon2') {
+                    $query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "spsr_pvz_order` WHERE order_id = '" . $data['order_id'] . "'");
+                    if ($query->num_rows > 0) {
+                        $sql = "UPDATE `" . DB_PREFIX . "spsr_pvz_order`".chr(13).chr(10);
+                        $sql .= "SET spsr_office_id = '" . $data['spsr_office_id'] . "'".chr(13).chr(10);
+                        $sql .= "WHERE spsr_pvz_order_id = '" . (int)$query->row['spsr_pvz_order_id'] . "'";
+                    } else {
+                        $sql = "INSERT INTO `" . DB_PREFIX . "spsr_pvz_order` (order_id, spsr_office_id)".chr(13).chr(10);
+                        $sql .= "VALUES ('" . $data['order_id'] . "', '" . $data['spsr_office_id'] . "')";
+                    }
+                    $this->db->query($sql);
+                } elseif ($data['type'] == 'spsr.zebon3') {
+                    $query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "spsr_postamat_order` WHERE order_id = '" . $data['order_id'] . "'");
+                    if ($query->num_rows > 0) {
+                        $sql = "UPDATE `" . DB_PREFIX . "spsr_postamat_order`".chr(13).chr(10);
+                        $sql .= "SET postamat_id = '" . $this->db->escape($data['postamat_id']) . "',".chr(13).chr(10);
+                        $sql .= "postamat_name = '" . $this->db->escape($data['postamat_name']) . "',".chr(13).chr(10);
+                        $sql .= "postamat_address = '" . $this->db->escape($data['postamat_address']) . "'".chr(13).chr(10);
+                        $sql .= "WHERE spsr_postamat_order_id = '" . (int)$query->row['spsr_postamat_order_id'] . "'";
+                    } else {
+                        $sql = "INSERT INTO `" . DB_PREFIX . "spsr_postamat_order` (order_id, postamat_id, postamat_name, postamat_address) VALUES (".chr(13).chr(10);
+                        $sql .= "'" . (int)$data['order_id'] . "',".chr(13).chr(10);
+                        $sql .= "'" . $this->db->escape($data['postamat_id']) . "',".chr(13).chr(10);
+                        $sql .= "'" . $this->db->escape($data['postamat_name']) . "',".chr(13).chr(10);
+                        $sql .= "'" . $this->db->escape($data['postamat_address']) . "')";
+                    }
+                    $this->db->query($sql);
+                }
+            }
+            ]]></add>
+        </operation>
+        <operation error="log">
+            <search position="after"><![CDATA[$order_id = $this->db->getLastId();]]></search>
+            <add><![CDATA[
+                if (isset($data['spsr_office_id']) && $data['shipping_code'] == 'spsr.zebon2') {
+                    $spsr = array(
+                        'type' => 'spsr.zebon2',
+                        'order_id' => (int)$order_id,
+                        'spsr_office_id' => (int)$data['spsr_office_id']
+                    );
+                    $this->addSpsrOrderDeliveryInfo($spsr);
+                }
+
+                if (isset($data['postamat_id']) && isset($data['postamat_address']) && isset($data['postamat_name']) && $data['shipping_code'] == 'spsr.zebon3') {
+                    $spsr = array(
+                        'type' => 'spsr.zebon3',
+                        'order_id' => (int)$order_id,
+                        'postamat_id' => $data['postamat_id'],
+                        'postamat_name' => $data['postamat_name'],
+                        'postamat_address' => $data['postamat_address']
+                    );
+                    $this->addSpsrOrderDeliveryInfo($spsr);
+                }
+            ]]></add>
+        </operation>
+    </file>
+</modification>

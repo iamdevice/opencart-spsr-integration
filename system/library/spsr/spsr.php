@@ -300,6 +300,7 @@ class spsr
             $attr[] = 'ContactName="' . $order['shipping_customer'] . '"';
             $attr[] = 'Phone="' . $order['shipping_telephone'] . '"';
             $attr[] = 'Comment=""';
+            $attr[] = 'ConsigneeCollect="' . $order['shipping_to_pvz'] . "'";
             $attr[] = 'Email="' . $order['shipping_email'] . '"';
             $data[] = '<Receiver ' . implode(' ', $attr) . ' />';
 
