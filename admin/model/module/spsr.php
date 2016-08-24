@@ -279,7 +279,7 @@ class ModelModuleSPSR extends Model
         $data = array();
 
         foreach ($orders as $order_id) {
-            $sql = "SELECT o.order_id, o.total, o.shipping_firstname, o.shipping_lastname, o.shipping_postcode, o.shipping_country_id, o.shipping_country, o.shipping_zone_id, o.shipping_zone, o.shipping_city, CONCAT(' ', o.shipping_address_1, o.shipping_address_2) AS 'shipping_address', o.telephone, o.comment, o.email".chr(13).chr(10);
+            $sql = "SELECT o.order_id, o.total, o.shipping_firstname, o.shipping_lastname, o.shipping_postcode, o.shipping_code, o.shipping_country_id, o.shipping_country, o.shipping_zone_id, o.shipping_zone, o.shipping_city, CONCAT(' ', o.shipping_address_1, o.shipping_address_2) AS 'shipping_address', o.telephone, o.comment, o.email".chr(13).chr(10);
             $sql .= "FROM `" . DB_PREFIX . "order` o".chr(13).chr(10);
             $sql .= "WHERE o.order_id = '" . (int)$order_id . "'";
 
@@ -344,12 +344,19 @@ class ModelModuleSPSR extends Model
                 );
             }
 
+            $query = $this->db->query('SELECT so.* FROM `' . DB_PREFIX . "spsr_pvz_order` spo INNER JOIN `" . DB_PREFIX . "spsr_offices` so ON spo.spsr_office_id = so.office_id WHERE order_id = '" . (int)$order_id . "'");
+            $office_info = $query->row;
+
+            $query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "spsr_postamat_order` WHERE order_id = '" . (int)$order_id . "'");
+            $postamat_info = $query->row;
+
             $data[] = array(
                 'order_id' => $order_info['order_id'],
                 'paid' => $paid,
                 'total' => $totals['total'],
                 'products_cost' => $totals['total'] - $totals['shipping_cost'],
                 'weight' => $weight,
+                'shipping_code' => $order_info['shipping_code'],
                 'shipping_customer' => $order_info['shipping_firstname'] . ' ' . $order_info['shipping_lastname'],
                 'shipping_postcode' => $order_info['shipping_postcode'],
                 'shipping_country_id' => $order_info['shipping_country_id'],
@@ -358,6 +365,14 @@ class ModelModuleSPSR extends Model
                 'shipping_zone' => $order_info['shipping_zone'],
                 'shipping_city' => $order_info['shipping_city'],
                 'shipping_address' => $order_info['shipping_address'],
+                'spsr_type_id' => $order_info['shipping_code'][mb_strlen($order_info['shipping_code'], 'UTF-8')-1],
+                'spsr_office_id' => isset($office_info['office_id']) ? $office_info['office_id'] : '',
+                'spsr_office_region' => isset($office_info['region']) ? $office_info['region'] : '',
+                'spsr_office_city' => isset($office_info['city_name']) ? $office_info['city_name'] : '',
+                'spsr_office_address' => isset($office_info['address']) ? $office_info['address'] : '',
+                'spsr_postamat_id' => isset($postamat_info['postamat_id']) ? $postamat_info['postamat_id'] : '',
+                'spsr_postamat_name' => isset($postamat_info['postamat_name']) ? $postamat_info['postamat_name'] : '',
+                'spsr_postamat_address' => isset($postamat_info['postamat_address']) ? $postamat_info['postamat_address'] : '',
                 'telephone' => $order_info['telephone'],
                 'comment' => $order_info['comment'],
                 'email' => $order_info['email'],

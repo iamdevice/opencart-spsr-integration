@@ -106,6 +106,25 @@
 
                         <div id="order-<?php echo $order['order_id']; ?>-shipping">
                             <table class="form">
+                                <?php if (!empty($order['spsr_office_id'])) { ?>
+                                <tr>
+                                    <td colspan="2">
+                                        <?php echo $text_shipping_to_pvz; ?>
+                                        <?php echo $help_shipping_to_pvz; ?>
+                                    </td>
+                                </tr>
+                                <?php } elseif (!empty($order['spsr_postamat_id'])) { ?>
+                                <tr>
+                                    <td colspan="2">
+                                        <?php echo $text_shipping_to_postamat; ?>
+                                        <?php echo $help_shipping_to_postamat; ?>
+                                        <?php $postamat_address = explode(',',$order['spsr_postamat_address']); ?>
+                                    </td>
+                                </tr>
+                                <?php } ?>
+                                <input type="hidden" name="order[<?php echo $order['order_id']; ?>][shipping_code]" value="<?php echo $order['shipping_code']; ?>" />
+                                <input type="hidden" name="order[<?php echo $order['order_id']; ?>][spsr_office_id]" value="<?php echo $order['spsr_office_id']; ?>" />
+                                <input type="hidden" name="order[<?php echo $order['order_id']; ?>][spsr_postamat_id]" value="<?php echo $order['spsr_postamat_id']; ?>" />
                                 <tr>
                                     <td><?php echo $entry_customer; ?></td>
                                     <td><input type="text" name="order[<?php echo $order['order_id']; ?>][shipping_customer]" value="<?php echo $order['shipping_customer']; ?>" size="50" /></td>
@@ -134,52 +153,60 @@
                                 </tr>
                                 <tr>
                                     <td><?php echo $entry_postcode; ?></td>
-                                    <td><input type="text" name="order[<?php echo $order['order_id']; ?>][shipping_postcode]" value="<?php echo $order['shipping_postcode']; ?>" /></td>
+                                    <td>
+                                        <?php if ($order['spsr_type_id'] == 3) { ?>
+                                        <input type="text" name="order[<?php echo $order['order_id']; ?>][shipping_postcode]" value="<?php echo $postamat_address[0]; ?>" />
+                                        <?php } else { ?>
+                                        <input type="text" name="order[<?php echo $order['order_id']; ?>][shipping_postcode]" value="<?php echo $order['shipping_postcode']; ?>" />
+                                        <?php } ?>
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td><?php echo $entry_country; ?></td>
                                     <td>
-                                        <input type="hidden" name="order[<?php echo $order['order_id']; ?>][shipping_country]" value="<?php echo $order['shipping_country']; ?>" />
-                                        <select name="order[<?php echo $order['order_id']; ?>][shipping_country_id]" onchange="countryChange(<?php echo $order['order_id']; ?>);'">
-                                            <?php foreach ($countries as $country) { ?>
-                                            <?php if ($order['shipping_country_id'] == $country['country_id']) { ?>
-                                            <option value="<?php echo $country['country_id']; ?>" selected="selected"><?php echo $country['name']; ?></option>
-                                            <?php } else { ?>
-                                            <option value="<?php echo $country['country_id']; ?>"><?php echo $country['name']; ?></option>
-                                            <?php } ?>
-                                            <?php } ?>
-                                        </select>
+                                        <input type="text" name="order[<?php echo $order['order_id']; ?>][shipping_country]" value="<?php echo $order['shipping_country']; ?>" />
                                     </td>
                                 </tr>
                                 <tr>
                                     <td><?php echo $entry_zone; ?></td>
                                     <td>
-                                        <input type="hidden" name="order[<?php echo $order['order_id']; ?>][shipping_zone]" value="<?php echo $order['shipping_zone']; ?>" />
-                                        <select name="order[<?php echo $order['order_id']; ?>][shipping_zone_id]">
-                                            <?php foreach ($zones as $zone) { ?>
-                                            <?php if ($order['shipping_country_id'] == $zone['country_id']) { ?>
-                                            <?php if ($order['shipping_zone_id'] == $zone['zone_id']) { ?>
-                                            <option value="<?php echo $zone['zone_id']; ?>" selected="selected"><?php echo $zone['name']; ?></option>
-                                            <?php } else { ?>
-                                            <option value="<?php echo $zone['zone_id']; ?>"><?php echo $zone['name']; ?></option>
-                                            <?php } ?>
-                                            <?php } ?>
-                                            <?php } ?>
-                                        </select>
+                                        <?php if ($order['spsr_type_id'] == 2) { ?>
+                                        <input type="text" name="order[<?php echo $order['order_id']; ?>][shipping_zone]" value="<?php echo $order['spsr_office_region']; ?>" />
+                                        <?php } elseif ($order['spsr_type_id'] == 3) { ?>
+                                        <input type="text" name="order[<?php echo $order['order_id']; ?>][shipping_zone]" value="<?php echo preg_replace('/^\s+|\s+$/','',$postamat_address[1]); ?>" />
+                                        <?php } else { ?>
+                                        <input type="text" name="order[<?php echo $order['order_id']; ?>][shipping_zone]" value="<?php echo $order['shipping_zone']; ?>" />
+                                        <?php } ?>
                                     </td>
                                 </tr>
                                 <tr>
                                     <td><?php echo $entry_city; ?></td>
-                                    <td><input type="text" name="order[<?php echo $order['order_id']; ?>][shipping_city]" value="<?php echo $order['shipping_city']; ?>" /></td>
+                                    <td>
+                                        <?php if ($order['spsr_type_id'] == 2) { ?>
+                                        <input type="text" name="order[<?php echo $order['order_id']; ?>][shipping_city]" value="<?php echo $order['spsr_office_city']; ?>" />
+                                        <?php } elseif ($order['spsr_type_id'] == 3) { ?>
+                                        <input type="text" name="order[<?php echo $order['order_id']; ?>][shipping_city]" value="<?php echo preg_replace('/^\s+|\s+$/','',$postamat_address[2]); ?>" />
+                                        <?php } else { ?>
+                                        <input type="text" name="order[<?php echo $order['order_id']; ?>][shipping_city]" value="<?php echo $order['shipping_city']; ?>" />
+                                        <?php } ?>
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td><?php echo $entry_address; ?></td>
-                                    <td><input type="text" name="order[<?php echo $order['order_id']; ?>][shipping_address]" value="<?php echo $order['shipping_address']; ?>" size="50" /></td>
+                                    <td>
+                                        <?php if ($order['spsr_type_id'] == 2) { ?>
+                                        <input type="text" name="order[<?php echo $order['order_id']; ?>][shipping_address]" value="<?php echo $order['spsr_office_address']; ?>" size="50" />
+                                        <?php } elseif ($order['spsr_type_id'] == 3) { ?>
+                                        <input type="text" name="order[<?php echo $order['order_id']; ?>][shipping_address]" value="<?php echo preg_replace('/^\s+|\s+$/','',$postamat_address[3]) . ',' . $postamat_address[4]; ?>" size="50" />
+                                        <?php } else { ?>
+                                        <input type="text" name="order[<?php echo $order['order_id']; ?>][shipping_address]" value="<?php echo $order['shipping_address']; ?>" size="50" />
+                                        <?php } ?>
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td><?php echo $entry_comment; ?></td>
                                     <td>
-                                        <textarea name="order[<?php echo $order['order_id']; ?>][comment]" cols="100" rows="7"><?php echo $order['comment']; ?></textarea>
+                                        <textarea name="order[<?php echo $order['order_id']; ?>][comment]" cols="100" rows="7"><?php echo ($order['spsr_type_id'] == 3) ? $order['spsr_postamat_id'] : $order['comment']; ?></textarea>
                                     </td>
                                 </tr>
                             </table>

@@ -190,6 +190,7 @@ class ControllerModuleSPSR extends Controller
                 'shipping_cost'         => $order['shipping_cost'],
                 'weight'                => $order['weight'],
                 'tariff'                => $order['tariff'],
+                'tariff_type_id'        => $order['shipping_code'][mb_strlen($order['shipping_code'], 'UTF-8')-1],
                 'shipper_postcode'      => $shipper['postcode'],
                 'shipper_region'        => $shipper_city['region_name'],
                 'shipper_city'          => $shipper_city['city_name'],

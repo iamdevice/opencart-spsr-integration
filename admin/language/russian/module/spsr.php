@@ -11,6 +11,11 @@ $_['text_coupon']				= 'Купон';
 $_['text_total']				= 'Итого';
 $_['text_updated']              = 'Обновлено:';
 $_['text_office_upd_alert']     = '<span style="color:#ff0000;">Внимание!</span> Обновление списка офисов займет продолжительное время!';
+$_['text_shipping_to_pvz']      = '<span style="color:#ff0000;">Доставка до ПВЗ</span>';
+$_['text_shipping_to_postamat'] = '<span style="color:#ff0000;">Доставка до постамата</span>';
+
+$_['help_shipping_to_pvz']      = '<br /><span class="help">Адрес доставки изменен на адрес ПВЗ</span>';
+$_['help_shipping_to_postamat'] = '<br /><span class="help">Адрес доставки изменен на адрес постамата</span>';
 
 // Тарифы
 $_['t_zebon']                   = 'Зебра-Онлайн';

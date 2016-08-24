@@ -292,7 +292,7 @@ class spsr
             $data[] = '<Shipper ' . implode(' ', $attr) . ' />';
 
             // Данные получателя
-            $attr = array();
+            /*$attr = array();
             $attr[] = 'PostCode="' . $order['shipping_postcode'] . '"';
             $attr[] = 'Region="' . $order['shipping_region'] . '"';
             $attr[] = 'City="' . $order['shipping_city'] . '"';
@@ -300,9 +300,11 @@ class spsr
             $attr[] = 'ContactName="' . $order['shipping_customer'] . '"';
             $attr[] = 'Phone="' . $order['shipping_telephone'] . '"';
             $attr[] = 'Comment=""';
-            $attr[] = 'ConsigneeCollect="' . $order['shipping_to_pvz'] . "'";
+            $attr[] = 'ConsigneeCollect=""';
             $attr[] = 'Email="' . $order['shipping_email'] . '"';
-            $data[] = '<Receiver ' . implode(' ', $attr) . ' />';
+            $data[] = '<Receiver ' . implode(' ', $attr) . ' />';*/
+            //$shipping_info = $this->getShippingInfo($order);
+            $data[] = $this->getRecieverInfo($order);
 
             // Дополнительная информация
             $attr = array();
@@ -410,6 +412,88 @@ class spsr
                     'messages' => $msgs
                 );
             }
+        }
+
+        return $data;
+    }
+
+    // Получаем только данные о доставке
+    protected function getShippingInfo($order_info)
+    {
+        $keys = array(
+            'shipping_code',
+            'shipping_customer',
+            'shipping_postcode',
+            'shipping_country_id',
+            'shipping_country',
+            'shipping_zone_id',
+            'shipping_zone',
+            'shipping_city',
+            'shipping_address',
+            'spsr_office_id',
+            'spsr_office_region',
+            'spsr_office_city',
+            'spsr_office_address',
+            'spsr_postamat_id',
+            'spsr_postamat_name',
+            'spsr_postamat_address'
+        );
+
+        $result = array_filter(
+            $order_info,
+            function ($key) use ($keys)
+            {
+                return in_array($key, $keys);
+            },
+            ARRAY_FILTER_USE_KEY
+        );
+
+        return $result;
+    }
+
+    // Получаем подготовленные данные получателя
+    protected function getRecieverInfo($shipping_info)
+    {
+        $data = '';
+        if ($shipping_info['tariff_type_id'] == 2) {
+            $attr = array();
+            $attr[] = 'PostCode=""';
+            $attr[] = 'Region="' . $shipping_info['shipping_region'] . '"';
+            $attr[] = 'City="' . $shipping_info['shipping_city'] . '"';
+            $attr[] = 'Address="' . $shipping_info['shipping_address'] . '"';
+            $attr[] = 'ContactName="' . $shipping_info['shipping_customer'] . '"';
+            $attr[] = 'Phone="' . $shipping_info['shipping_telephone'] . '"';
+            $attr[] = 'Comment=""';
+            $attr[] = 'ConsigneeCollect="Y"';
+            $attr[] = 'Email="' . $shipping_info['shipping_email'] . '"';
+            $data = '<Receiver ' . implode(' ', $attr) . ' />';
+        } elseif ($shipping_info['tariff_type_id'] == 3) {
+            $postamat_address = explode(',', $shipping_info['spsr_postamat_address']);
+
+            $attr = array();
+            $attr[] = 'PostCode="' . $shipping_info['shipping_postcode'] . '"';
+            $attr[] = 'Region="' . $shipping_info['shipping_region'] . '"';
+            $attr[] = 'City="' . $shipping_info['shipping_city'] . '"';
+            $attr[] = 'Address="' . $shipping_info['shipping_address'] . '"';
+            $attr[] = 'ContactName="' . $shipping_info['shipping_customer'] . '"';
+            $attr[] = 'Phone="' . $shipping_info['shipping_telephone'] . '"';
+            $attr[] = 'Comment="' . $shipping_info['shipping_comment'] . '"';
+            $attr[] = 'ConsigneeCollect=""';
+            $attr[] = 'Email="' . $shipping_info['shipping_email'] . '"';
+            $data = '<Receiver ' . implode(' ', $attr) . ' />';
+        } else {
+            // Данные получателя
+            $attr = array();
+            $attr[] = 'PostCode="' . $shipping_info['shipping_postcode'] . '"';
+            $attr[] = 'Region="' . $shipping_info['shipping_region'] . '"';
+            $attr[] = 'City="' . $shipping_info['shipping_city'] . '"';
+            $attr[] = 'Address="' . $shipping_info['shipping_address'] . '"';
+            $attr[] = 'ContactName="' . $shipping_info['shipping_customer'] . '"';
+            $attr[] = 'Phone="' . $shipping_info['shipping_telephone'] . '"';
+            $attr[] = 'Comment=""';
+            $attr[] = 'ConsigneeCollect=""';
+            $attr[] = 'Email="' . $shipping_info['shipping_email'] . '"';
+            $data = '<Receiver ' . implode(' ', $attr) . ' />';
         }
 
         return $data;
