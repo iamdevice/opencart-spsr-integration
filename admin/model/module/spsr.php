@@ -563,6 +563,12 @@ class ModelModuleSPSR extends Model
         }
     }
 
+    public function getTrackNumbers()
+    {
+        $query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "spsr_track`");
+        return $query->rows;
+    }
+
     private function issetTrackNumber($data)
     {
         $query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "spsr_track` WHERE track_number = '" . $this->db->escape($data['track']) . "' AND order_id = '" . (int)$data['order_id'] . "'");

@@ -408,9 +408,9 @@
                                 <select name="spsr_intgr_order_rules[<?php echo $row; ?>][spsr_status_id]" style="max-width:150px;">
                                     <?php foreach ($spsr_statuses as $spsr_status) { ?>
                                     <?php if ($rule['spsr_status_id'] == $spsr_status['event_id']) { ?>
-                                    <option value="<?php $spsr_status['event_id']; ?>" selected="selected"><?php echo $spsr_status['name']; ?></option>
+                                    <option value="<?php echo $spsr_status['event_id']; ?>" selected="selected"><?php echo $spsr_status['name']; ?></option>
                                     <?php } else { ?>
-                                    <option value="<?php $spsr_status['event_id']; ?>"><?php echo $spsr_status['name']; ?></option>
+                                    <option value="<?php echo $spsr_status['event_id']; ?>"><?php echo $spsr_status['name']; ?></option>
                                     <?php } ?>
                                     <?php } ?>
                                 </select>
@@ -433,7 +433,7 @@
                                     <option value="0"><?php echo $text_no; ?></option>
                                     <?php } else { ?>
                                     <option value="1"><?php echo $text_yes; ?></option>
-                                    <option value="0"><?php echo $text_no; ?></option>
+                                    <option value="0" selected="selected"><?php echo $text_no; ?></option>
                                     <?php } ?>
                                 </select>
                             </td>

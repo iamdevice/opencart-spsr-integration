@@ -417,38 +417,32 @@ class spsr
         return $data;
     }
 
-    // Получаем только данные о доставке
-    protected function getShippingInfo($order_info)
+    public function getInvoicesInfo($orders)
     {
-        $keys = array(
-            'shipping_code',
-            'shipping_customer',
-            'shipping_postcode',
-            'shipping_country_id',
-            'shipping_country',
-            'shipping_zone_id',
-            'shipping_zone',
-            'shipping_city',
-            'shipping_address',
-            'spsr_office_id',
-            'spsr_office_region',
-            'spsr_office_city',
-            'spsr_office_address',
-            'spsr_postamat_id',
-            'spsr_postamat_name',
-            'spsr_postamat_address'
-        );
+        $request = '<root xmlns="http://spsr.ru/webapi/DataEditManagment/GetInvoiceInfo/1.1">'.chr(13).chr(10);
+        $request .= '<p:Params Name="WAGetInvoiceInfo" xmlns:p="http://spsr.ru/webapi/WA/1.0" Ver="1.1"/>';
+        $request .= '<Login SID="' . $this->spsr_sid . '" Login="' . $this->spsr_login . '" ICN="' . $this->spsr_ikn . '"/>'.chr(13).chr(10);
+        foreach ($orders as $order) {
+            $request .= '<InvoiceInfo InvoiceNumber="' . $order['track_number'] . '"/>'.chr(13).chr(10);
+        }
+        $request .= '</root>';
+        $xml = $this->sendRequest($request);
+        $xml = simplexml_load_string($xml);
 
-        $result = array_filter(
-            $order_info,
-            function ($key) use ($keys)
-            {
-                return in_array($key, $keys);
-            },
-            ARRAY_FILTER_USE_KEY
-        );
+        $invoices = array();
+        $invoice = new spsr_invoice();
+        foreach ($xml->GetInvoiceInfo->Invoice as $inv) {
+            $invoice->setData($inv);
+            $invoices[] = $invoice->getData();
+        }
+        unset($invoice);
+        return $invoices;
+    }
 
-        return $result;
+    public function checkStatus($status_id)
+    {
+        $invoice = new spsr_invoice();
+        return $invoice->checkStatus($status_id);
     }
 
     // Получаем подготовленные данные получателя

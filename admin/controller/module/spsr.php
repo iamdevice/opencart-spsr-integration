@@ -100,7 +100,8 @@ class ControllerModuleSPSR extends Controller
         $this->data['load_spsr_offices'] = $this->url->link('module/spsr/loadspsroffices', 'token=' . $this->session->data['token'], 'SSL');
 
         $this->data['order_statuses'] = $this->model_localisation_order_status->getOrderStatuses();
-        $this->data['spsr_statuses'] = $this->model_module_spsr->getSpsrStatuses();
+        //$this->data['spsr_statuses'] = $this->model_module_spsr->getSpsrStatuses();
+        $this->data['spsr_statuses'] = $this->getStatuses();
         $this->data['spsr_product_types'] = $this->model_module_spsr->getSpsrProductTypes();
         $this->data['spsr_servers'] = $this->spsr->getSpsrServers();
 
@@ -166,6 +167,36 @@ class ControllerModuleSPSR extends Controller
             'common/footer'
         );
         $this->response->setOutput($this->render());
+    }
+
+    public function cron()
+    {
+        $this->language->load('module/spsr');
+        $this->load->model('sale/order');
+        $this->load->model('localisation/order_status');
+
+        $this->spsr->selectServer($this->config->get('spsr_intgr_server'));
+        $this->spsr->setAuth();
+        $this->spsr->openSession();
+        $this->load->model('module/spsr');
+        $tracks = $this->model_module_spsr->getTrackNumbers();
+        $track_info = $this->spsr->getInvoicesInfo($tracks);
+        $this->spsr->closeSession();
+        foreach ($track_info as $info) {
+            foreach ($this->config->get($this->var_prefix . 'order_rules') as $rule) {
+                $spsr_status_id = $this->spsr->checkStatus($info['status']);
+               if ($rule['spsr_status_id'] == $spsr_status_id) {
+                    $data = array(
+                        'order_status_id' => $rule['order_status_id'],
+                        'notify' => $rule['notify'],
+                        'comment' => $rule['comment']
+                    );
+                    $this->model_sale_order->addOrderHistory($info['order_id'], $data);
+                    echo sprintf($this->language->get('text_order_status_updated'), (string)$info['order_id'], $this->model_localisation_order_status->getOrderStatus($rule['order_status_id'])['name']) . '<br />';
+                    break;
+                }
+            }
+        }
     }
 
     public function sendXml()
@@ -282,6 +313,24 @@ class ControllerModuleSPSR extends Controller
         $this->model_setting_setting->editSetting('spsr_integration_offices', $save);
 
         $this->redirect($this->url->link('module/spsr', 'token=' . $this->session->data['token'], 'SSL'));
+    }
+
+    private function getStatuses()
+    {
+        return array(
+            array(
+                'event_id' => 1,
+                'name' => 'В обработке'
+            ),
+            array(
+                'event_id' => 2,
+                'name' => 'Доставлено'
+            ),
+            array(
+                'event_id' => 3,
+                'name' => 'Не доставлено'
+            )
+        );
     }
 
     private function validate()
